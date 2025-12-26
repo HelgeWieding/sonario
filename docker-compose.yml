@@ -1,11 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: request-radar-db
+    container_name: sonario-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: request_radar
+      POSTGRES_DB: sonario
     ports:
       - "5432:5432"
     volumes:

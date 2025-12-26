@@ -7,7 +7,7 @@ const { user } = useUser()
     <div class="px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-600">
-          Request Radar
+          Sonario
         </NuxtLink>
       </div>
 

@@ -1,4 +1,4 @@
-# Request Radar
+# Sonario
 
 AI-powered feature request aggregation app that processes Gmail emails and extracts feature requests.
 
@@ -52,7 +52,7 @@ npm run dev
 ## Project Structure
 
 ```
-request-radar/
+sonario/
 ├── app/                    # Frontend (Nuxt 4)
 │   ├── components/         # Vue components
 │   ├── composables/        # Vue composables

@@ -57,15 +57,24 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      title: 'Request Radar',
+      title: 'Sonario',
+      titleTemplate: '%s | Sonario',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'AI-powered feature request aggregation' },
+        { name: 'description', content: 'AI-powered feature request management. Automatically collect, organize, and prioritize customer feedback.' },
+        { name: 'theme-color', content: '#0284c7' },
+        { property: 'og:site_name', content: 'Sonario' },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'robots', content: 'index, follow' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       ],
+      htmlAttrs: {
+        lang: 'en',
+      },
     },
   },
 })

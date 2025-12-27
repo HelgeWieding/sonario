@@ -74,19 +74,22 @@ export interface HelpScoutConnectionStatus {
   lastSyncAt: Date | null
 }
 
+// Help Scout webhook sends the full conversation object directly
 export interface HelpScoutWebhookPayload {
-  id: string
-  type: string // e.g., 'convo.created', 'convo.customer.reply.created'
-  mailbox: {
-    id: number
-    name: string
-  }
-  conversation: {
-    id: number
-    number: number
-  }
-  primaryCustomer?: {
+  id: number
+  number: number
+  subject: string
+  status: string
+  type: string
+  mailboxId: number
+  createdAt: string
+  primaryCustomer: {
     id: number
     email: string
+    first?: string
+    last?: string
+  }
+  _links?: {
+    self: { href: string }
   }
 }

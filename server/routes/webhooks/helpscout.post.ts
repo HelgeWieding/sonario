@@ -38,10 +38,11 @@ export default defineEventHandler(async (event) => {
 
   const payload = JSON.parse(rawBody) as HelpScoutWebhookPayload
 
-  console.log('Received Help Scout webhook:', payload.type, 'conversation:', payload.conversation?.id)
+  console.log('Received Help Scout webhook, conversation:', payload.id)
 
-  // Only process conversation events
-  if (!payload.type?.startsWith('convo.') || !payload.conversation?.id) {
+  // Ensure we have a conversation ID
+  if (!payload.id) {
+    console.log('No conversation ID in webhook payload')
     return { received: true }
   }
 
@@ -72,7 +73,7 @@ export default defineEventHandler(async (event) => {
 
     // Fetch full conversation and process
     const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)
-    const conversation = await helpscoutService.getConversation(payload.conversation.id)
+    const conversation = await helpscoutService.getConversation(payload.id)
 
     if (conversation) {
       await ConversationProcessorService.processConversation(connection, conversation, products)

@@ -12,9 +12,21 @@ export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
   const db = getDb()
 
-  // Get user's Help Scout connection
+  // Get user's product
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
+  })
+
+  if (!product) {
+    throw createError({
+      statusCode: 400,
+      message: 'No product found. Create a product first.',
+    })
+  }
+
+  // Get Help Scout connection for this product
   const connection = await db.query.helpscoutConnections.findFirst({
-    where: eq(schema.helpscoutConnections.userId, user.id),
+    where: eq(schema.helpscoutConnections.productId, product.id),
   })
 
   if (!connection || !connection.isActive) {
@@ -38,19 +50,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Get user's products for matching
-  const products = await db.query.products.findMany({
-    where: eq(schema.products.userId, user.id),
-  })
-
-  if (products.length === 0) {
-    return {
-      data: {
-        processed: 0,
-        message: 'No products found. Create a product first.',
-      },
-    }
-  }
+  // Use the product we already have
+  const products = [product]
 
   let processed = 0
   for (const conversation of conversations) {

@@ -52,9 +52,18 @@ export default defineEventHandler(async (event) => {
       historyId = profile?.historyId || null
     }
 
+    // Get user's product
+    const product = await db.query.products.findFirst({
+      where: eq(schema.products.userId, user.id),
+    })
+
+    if (!product) {
+      return sendRedirect(event, '/settings/gmail?error=no_product')
+    }
+
     // Check for existing connection and update or create
     const existingConnection = await db.query.gmailConnections.findFirst({
-      where: eq(schema.gmailConnections.userId, user.id),
+      where: eq(schema.gmailConnections.productId, product.id),
     })
 
     const connectionData = {
@@ -75,7 +84,7 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.gmailConnections.id, existingConnection.id))
     } else {
       await db.insert(schema.gmailConnections).values({
-        userId: user.id,
+        productId: product.id,
         ...connectionData,
       })
     }

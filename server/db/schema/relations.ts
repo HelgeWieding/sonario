@@ -10,8 +10,6 @@ import { helpscoutConnections } from './helpscout-connections'
 export const usersRelations = relations(users, ({ many }) => ({
   products: many(products),
   contacts: many(contacts),
-  gmailConnections: many(gmailConnections),
-  helpscoutConnections: many(helpscoutConnections),
 }))
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -20,6 +18,9 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [users.id],
   }),
   featureRequests: many(featureRequests),
+  feedback: many(feedback),
+  gmailConnections: many(gmailConnections),
+  helpscoutConnections: many(helpscoutConnections),
 }))
 
 export const featureRequestsRelations = relations(featureRequests, ({ one, many }) => ({
@@ -39,6 +40,10 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
 }))
 
 export const feedbackRelations = relations(feedback, ({ one }) => ({
+  product: one(products, {
+    fields: [feedback.productId],
+    references: [products.id],
+  }),
   featureRequest: one(featureRequests, {
     fields: [feedback.featureRequestId],
     references: [featureRequests.id],
@@ -50,15 +55,15 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 }))
 
 export const gmailConnectionsRelations = relations(gmailConnections, ({ one }) => ({
-  user: one(users, {
-    fields: [gmailConnections.userId],
-    references: [users.id],
+  product: one(products, {
+    fields: [gmailConnections.productId],
+    references: [products.id],
   }),
 }))
 
 export const helpscoutConnectionsRelations = relations(helpscoutConnections, ({ one }) => ({
-  user: one(users, {
-    fields: [helpscoutConnections.userId],
-    references: [users.id],
+  product: one(products, {
+    fields: [helpscoutConnections.productId],
+    references: [products.id],
   }),
 }))

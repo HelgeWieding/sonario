@@ -7,9 +7,16 @@ export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
   const db = getDb()
 
-  const connection = await db.query.gmailConnections.findFirst({
-    where: eq(schema.gmailConnections.userId, user.id),
+  // Get user's product
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
   })
+
+  const connection = product
+    ? await db.query.gmailConnections.findFirst({
+        where: eq(schema.gmailConnections.productId, product.id),
+      })
+    : null
 
   const status: GmailConnectionStatus = {
     isConnected: !!connection,

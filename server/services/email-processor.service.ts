@@ -35,24 +35,17 @@ export class EmailProcessorService {
 
     console.log(`Processing ${messageIds.length} new messages`)
 
-    // Get user's products for matching
-    const user = await db.query.users.findFirst({
-      where: eq(schema.users.id, connection.userId),
+    // Get the product for this connection
+    const product = await db.query.products.findFirst({
+      where: eq(schema.products.id, connection.productId),
     })
 
-    if (!user) {
-      console.error('User not found for connection:', connection.id)
+    if (!product) {
+      console.error('Product not found for connection:', connection.id)
       return
     }
 
-    const products = await db.query.products.findMany({
-      where: eq(schema.products.userId, user.id),
-    })
-
-    if (products.length === 0) {
-      console.log('No products found for user, skipping processing')
-      return
-    }
+    const products = [product]
 
     // Process each message
     for (const messageId of messageIds) {
@@ -76,7 +69,7 @@ export class EmailProcessorService {
   static async processSingleEmail(
     connection: GmailConnection,
     messageId: string,
-    products: Array<{ id: string; name: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
   ): Promise<void> {
     const gmailService = new GmailService(connection.accessToken, connection.refreshToken)
     const claudeService = new ClaudeService()
@@ -98,7 +91,7 @@ export class EmailProcessorService {
     connection: GmailConnection,
     gmailService: GmailService,
     claudeService: ClaudeService,
-    products: Array<{ id: string; name: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
   ): Promise<void> {
     const db = getDb()
 
@@ -128,12 +121,16 @@ export class EmailProcessorService {
     // Create email content for analysis
     const emailContent = `Subject: ${normalized.subject}\nFrom: ${normalized.sender.email}\n\n${normalized.content}`
 
+    // For now, use the first product (or implement smarter product matching based on emailFilter)
+    const targetProduct = products[0]
+
     // Check if it's a feature request
     console.log('email Content', emailContent);
     const isFeatureRequest = await claudeService.isFeatureRequest(emailContent)
 
     // Record that we processed this message (store content for later feedback creation)
     const [processedMessage] = await db.insert(schema.processedMessages).values({
+      productId: targetProduct.id,
       source: 'gmail',
       sourceMessageId: normalized.sourceId,
       sourceThreadId: normalized.sourceThreadId,
@@ -158,9 +155,6 @@ export class EmailProcessorService {
       return
     }
 
-    // For now, use the first product (or implement smarter product matching based on emailFilter)
-    const targetProduct = products[0]
-
     // Try to find a matching existing request
     const matchingRequest = await FeatureMatcherService.findMatch(
       extracted,
@@ -170,7 +164,7 @@ export class EmailProcessorService {
 
     // Find or create contact for this sender
     const contact = normalized.sender.email
-      ? await ContactService.findOrCreate(connection.userId, normalized.sender.email, normalized.sender.name)
+      ? await ContactService.findOrCreate(targetProduct.userId, normalized.sender.email, normalized.sender.name)
       : null
 
     if (matchingRequest) {
@@ -178,6 +172,7 @@ export class EmailProcessorService {
       console.log(`Adding feedback to existing request ${matchingRequest.id}`)
 
       const [newFeedback] = await db.insert(schema.feedback).values({
+        productId: targetProduct.id,
         featureRequestId: matchingRequest.id,
         contactId: contact?.id,
         content: normalized.content,
@@ -217,6 +212,7 @@ export class EmailProcessorService {
 
       // Always create initial feedback to track the requester
       const [newFeedback] = await db.insert(schema.feedback).values({
+        productId: targetProduct.id,
         featureRequestId: newRequest.id,
         contactId: contact?.id,
         content: normalized.content,

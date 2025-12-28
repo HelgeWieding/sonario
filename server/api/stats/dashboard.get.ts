@@ -64,10 +64,12 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Check Gmail connection
-  const gmailConnection = await db.query.gmailConnections.findFirst({
-    where: eq(schema.gmailConnections.userId, user.id),
-  })
+  // Check Gmail connection (use first product)
+  const gmailConnection = productIds.length > 0
+    ? await db.query.gmailConnections.findFirst({
+        where: eq(schema.gmailConnections.productId, productIds[0]),
+      })
+    : null
 
   const stats: DashboardStats = {
     totalProducts,

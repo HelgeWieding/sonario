@@ -10,13 +10,26 @@ const route = useRoute()
 const productId = route.params.productId as string
 
 const { getProduct } = useProducts()
-const { requests, loading: requestsLoading, fetchRequests } = useFeatureRequests()
+const { requests, loading: requestsLoading, fetchRequests, createRequest } = useFeatureRequests()
 
 const product = ref<ProductWithStats | null>(null)
 const productLoading = ref(true)
 
 const statusFilter = ref('')
 const categoryFilter = ref('')
+
+// Add feature request dialog state
+const showAddDialog = ref(false)
+const creating = ref(false)
+const newRequest = ref({
+  title: '',
+  description: '',
+  category: 'feature' as typeof CATEGORIES[number],
+})
+
+const isFormValid = computed(() =>
+  newRequest.value.title.trim() && newRequest.value.description.trim()
+)
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -27,6 +40,9 @@ const categoryOptions = [
   { value: '', label: 'All Categories' },
   ...CATEGORIES.map(c => ({ value: c, label: CATEGORY_LABELS[c] })),
 ]
+
+// Category options for form (without "All" option)
+const formCategoryOptions = CATEGORIES.map(c => ({ value: c, label: CATEGORY_LABELS[c] }))
 
 async function loadProduct() {
   productLoading.value = true
@@ -50,6 +66,30 @@ onMounted(async () => {
 watch([statusFilter, categoryFilter], () => {
   loadRequests()
 })
+
+async function handleCreateRequest() {
+  if (!isFormValid.value) return
+
+  creating.value = true
+  const result = await createRequest({
+    productId,
+    title: newRequest.value.title.trim(),
+    description: newRequest.value.description.trim(),
+    category: newRequest.value.category,
+  })
+  creating.value = false
+
+  if (result) {
+    closeAddDialog()
+    await loadRequests()
+    await loadProduct() // Refresh the count
+  }
+}
+
+function closeAddDialog() {
+  showAddDialog.value = false
+  newRequest.value = { title: '', description: '', category: 'feature' }
+}
 </script>
 
 <template>
@@ -99,6 +139,9 @@ watch([statusFilter, categoryFilter], () => {
             placeholder="Filter by category"
           />
         </div>
+        <UiButton class="ml-auto" @click="showAddDialog = true">
+          Add Feature Request
+        </UiButton>
       </div>
 
       <!-- Feature Requests -->
@@ -119,5 +162,42 @@ watch([statusFilter, categoryFilter], () => {
         :product-id="productId"
       />
     </div>
+
+    <!-- Add Feature Request Modal -->
+    <UiModal :open="showAddDialog" title="Add Feature Request" @close="closeAddDialog">
+      <form @submit.prevent="handleCreateRequest" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <UiInput
+            v-model="newRequest.title"
+            placeholder="Feature title"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            v-model="newRequest.description"
+            rows="4"
+            placeholder="Describe the feature request..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <UiSelect
+            v-model="newRequest.category"
+            :options="formCategoryOptions"
+          />
+        </div>
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeAddDialog">
+            Cancel
+          </UiButton>
+          <UiButton type="submit" :loading="creating" :disabled="!isFormValid">
+            Create
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
   </div>
 </template>

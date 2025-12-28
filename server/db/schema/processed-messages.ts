@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, uuid, boolean, pgEnum } from 'drizzle-orm/pg-core'
+import { products } from './products'
 
 export const messageSourceEnum = pgEnum('message_source', [
   'gmail',
@@ -10,6 +11,7 @@ export const messageSourceEnum = pgEnum('message_source', [
 
 export const processedMessages = pgTable('processed_messages', {
   id: uuid('id').primaryKey().defaultRandom(),
+  productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
 
   // Source identification
   source: messageSourceEnum('source').notNull(),

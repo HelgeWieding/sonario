@@ -2,7 +2,8 @@ import type { Sentiment } from '../constants/enums'
 
 export interface Feedback {
   id: string
-  featureRequestId: string
+  productId: string
+  featureRequestId: string | null
   content: string
   sentiment: Sentiment
   senderEmail: string | null
@@ -13,7 +14,8 @@ export interface Feedback {
 }
 
 export interface CreateFeedbackInput {
-  featureRequestId: string
+  productId: string
+  featureRequestId?: string
   content: string
   sentiment?: Sentiment
   senderEmail?: string

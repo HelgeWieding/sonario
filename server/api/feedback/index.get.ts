@@ -40,22 +40,22 @@ export default defineEventHandler(async (event) => {
   const productIds = products.map(p => p.id)
   const query = getQuery(event)
 
-  const source = query.source as string | undefined
-  const isFeatureRequest = query.isFeatureRequest as string | undefined
+  const sentiment = query.sentiment as string | undefined
+  const featureRequestId = query.featureRequestId as string | undefined
   const page = Math.max(1, parseInt(query.page as string) || 1)
   const limit = Math.min(100, Math.max(1, parseInt(query.limit as string) || 20))
   const offset = (page - 1) * limit
 
   // Build conditions - filter by user's products
   const conditions: ReturnType<typeof eq>[] = [
-    inArray(schema.processedMessages.productId, productIds),
+    inArray(schema.feedback.productId, productIds),
   ]
 
-  if (source) {
-    conditions.push(eq(schema.processedMessages.source, source as any))
+  if (sentiment) {
+    conditions.push(eq(schema.feedback.sentiment, sentiment as any))
   }
-  if (isFeatureRequest !== undefined) {
-    conditions.push(eq(schema.processedMessages.isFeatureRequest, isFeatureRequest === 'true'))
+  if (featureRequestId) {
+    conditions.push(eq(schema.feedback.featureRequestId, featureRequestId))
   }
 
   const whereClause = and(...conditions)
@@ -63,19 +63,34 @@ export default defineEventHandler(async (event) => {
   // Get total count
   const [{ total }] = await db
     .select({ total: count() })
-    .from(schema.processedMessages)
+    .from(schema.feedback)
     .where(whereClause)
 
-  // Get paginated messages
-  const messages = await db.query.processedMessages.findMany({
+  // Get paginated feedback with related feature request
+  const feedbackList = await db.query.feedback.findMany({
     where: whereClause,
-    orderBy: [desc(schema.processedMessages.processedAt)],
+    orderBy: [desc(schema.feedback.createdAt)],
     limit,
     offset,
+    with: {
+      featureRequest: {
+        columns: {
+          id: true,
+          title: true,
+        },
+      },
+      contact: {
+        columns: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
   })
 
   return {
-    data: messages,
+    data: feedbackList,
     pagination: {
       page,
       limit,

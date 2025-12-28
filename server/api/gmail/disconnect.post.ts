@@ -8,8 +8,17 @@ export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
   const db = getDb()
 
+  // Get user's product
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
+  })
+
+  if (!product) {
+    notFound('Product not found')
+  }
+
   const connection = await db.query.gmailConnections.findFirst({
-    where: eq(schema.gmailConnections.userId, user.id),
+    where: eq(schema.gmailConnections.productId, product.id),
   })
 
   if (!connection) {

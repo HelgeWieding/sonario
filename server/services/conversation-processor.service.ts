@@ -15,7 +15,7 @@ export class ConversationProcessorService {
   static async processConversation(
     connection: HelpScoutConnection,
     conversation: HelpScoutConversation,
-    products: Array<{ id: string; name: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
   ): Promise<void> {
     const db = getDb()
     const conversationId = String(conversation.id)
@@ -43,12 +43,16 @@ ${normalized.content}`
 
     console.log('Processing conversation:', conversation.subject)
 
+    // Use the first product (or implement smarter product matching)
+    const targetProduct = products[0]
+
     // Check if it's a feature request
     const claudeService = new ClaudeService()
     const isFeatureRequest = await claudeService.isFeatureRequest(conversationContent)
 
     // Record that we processed this message (store content for later feedback creation)
     const [processedMessage] = await db.insert(schema.processedMessages).values({
+      productId: targetProduct.id,
       source: 'helpscout',
       sourceMessageId: conversationId,
       subject: normalized.subject,
@@ -72,9 +76,6 @@ ${normalized.content}`
       return
     }
 
-    // Use the first product (or implement smarter product matching)
-    const targetProduct = products[0]
-
     // Try to find a matching existing request
     const matchingRequest = await FeatureMatcherService.findMatch(
       extracted,
@@ -84,7 +85,7 @@ ${normalized.content}`
 
     // Find or create contact for this sender
     const contact = normalized.sender.email
-      ? await ContactService.findOrCreate(connection.userId, normalized.sender.email, normalized.sender.name)
+      ? await ContactService.findOrCreate(targetProduct.userId, normalized.sender.email, normalized.sender.name)
       : null
 
     if (matchingRequest) {
@@ -92,6 +93,7 @@ ${normalized.content}`
       console.log(`Adding feedback to existing request ${matchingRequest.id}`)
 
       const [newFeedback] = await db.insert(schema.feedback).values({
+        productId: targetProduct.id,
         featureRequestId: matchingRequest.id,
         contactId: contact?.id,
         content: normalized.content,
@@ -131,6 +133,7 @@ ${normalized.content}`
 
       // Always create initial feedback to track the requester
       const [newFeedback] = await db.insert(schema.feedback).values({
+        productId: targetProduct.id,
         featureRequestId: newRequest.id,
         contactId: contact?.id,
         content: normalized.content,
@@ -156,7 +159,7 @@ ${normalized.content}`
    */
   static async processNewConversations(
     connection: HelpScoutConnection,
-    products: Array<{ id: string; name: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
   ): Promise<number> {
     const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)
     const db = getDb()

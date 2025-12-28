@@ -61,15 +61,17 @@ export default defineEventHandler(async (event) => {
   const connection = connections[0]
 
   try {
-    // Get the user's products
-    const products = await db.query.products.findMany({
-      where: eq(schema.products.userId, connection.userId),
+    // Get the product for this connection
+    const product = await db.query.products.findFirst({
+      where: eq(schema.products.id, connection.productId),
     })
 
-    if (products.length === 0) {
-      console.log('No products found for user:', connection.userId)
+    if (!product) {
+      console.log('No product found for connection:', connection.id)
       return { received: true }
     }
+
+    const products = [product]
 
     // Fetch full conversation and process
     const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)

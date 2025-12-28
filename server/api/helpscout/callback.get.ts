@@ -30,9 +30,18 @@ export default defineEventHandler(async (event) => {
     // Calculate token expiration
     const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
+    // Get user's product
+    const product = await db.query.products.findFirst({
+      where: eq(schema.products.userId, user.id),
+    })
+
+    if (!product) {
+      return sendRedirect(event, '/settings/helpscout?error=no_product')
+    }
+
     // Check for existing connection and update or create
     const existingConnection = await db.query.helpscoutConnections.findFirst({
-      where: eq(schema.helpscoutConnections.userId, user.id),
+      where: eq(schema.helpscoutConnections.productId, product.id),
     })
 
     const connectionData = {
@@ -50,7 +59,7 @@ export default defineEventHandler(async (event) => {
         .where(eq(schema.helpscoutConnections.id, existingConnection.id))
     } else {
       await db.insert(schema.helpscoutConnections).values({
-        userId: user.id,
+        productId: product.id,
         ...connectionData,
       })
     }

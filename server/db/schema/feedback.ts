@@ -1,10 +1,12 @@
 import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core'
+import { products } from './products'
 import { featureRequests, sentimentEnum } from './feature-requests'
 import { contacts } from './contacts'
 
 export const feedback = pgTable('feedback', {
   id: uuid('id').primaryKey().defaultRandom(),
-  featureRequestId: uuid('feature_request_id').notNull().references(() => featureRequests.id, { onDelete: 'cascade' }),
+  productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  featureRequestId: uuid('feature_request_id').references(() => featureRequests.id, { onDelete: 'set null' }),
   contactId: uuid('contact_id').references(() => contacts.id, { onDelete: 'set null' }),
   content: text('content').notNull(),
   sentiment: sentimentEnum('sentiment').notNull().default('neutral'),

@@ -12,9 +12,21 @@ export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
   const db = getDb()
 
-  // Get user's Gmail connection
+  // Get user's product
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
+  })
+
+  if (!product) {
+    throw createError({
+      statusCode: 400,
+      message: 'No product found. Create a product first.',
+    })
+  }
+
+  // Get Gmail connection for this product
   const connection = await db.query.gmailConnections.findFirst({
-    where: eq(schema.gmailConnections.userId, user.id),
+    where: eq(schema.gmailConnections.productId, product.id),
   })
 
   if (!connection || !connection.isActive) {
@@ -77,19 +89,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Get user's products for matching
-  const products = await db.query.products.findMany({
-    where: eq(schema.products.userId, user.id),
-  })
-
-  if (products.length === 0) {
-    return {
-      data: {
-        processed: 0,
-        message: 'No products found. Create a product first.',
-      },
-    }
-  }
+  // Use the product we already have
+  const products = [product]
 
   // Process each new message
   let processed = 0

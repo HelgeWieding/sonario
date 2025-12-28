@@ -1,9 +1,9 @@
 import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core'
-import { users } from './users'
+import { products } from './products'
 
 export const gmailConnections = pgTable('gmail_connections', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   email: text('email').notNull(),
   accessToken: text('access_token').notNull(),
   refreshToken: text('refresh_token').notNull(),

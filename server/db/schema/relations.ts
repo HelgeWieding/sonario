@@ -9,7 +9,6 @@ import { helpscoutConnections } from './helpscout-connections'
 
 export const usersRelations = relations(users, ({ many }) => ({
   products: many(products),
-  contacts: many(contacts),
 }))
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -19,6 +18,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   }),
   featureRequests: many(featureRequests),
   feedback: many(feedback),
+  contacts: many(contacts),
   gmailConnections: many(gmailConnections),
   helpscoutConnections: many(helpscoutConnections),
 }))
@@ -32,9 +32,9 @@ export const featureRequestsRelations = relations(featureRequests, ({ one, many 
 }))
 
 export const contactsRelations = relations(contacts, ({ one, many }) => ({
-  user: one(users, {
-    fields: [contacts.userId],
-    references: [users.id],
+  product: one(products, {
+    fields: [contacts.productId],
+    references: [products.id],
   }),
   feedback: many(feedback),
 }))

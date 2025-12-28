@@ -1,3 +1,6 @@
+-- Delete all existing contacts (they have user_id, need product_id now)
+TRUNCATE TABLE "contacts" CASCADE;
+--> statement-breakpoint
 ALTER TABLE "contacts" DROP CONSTRAINT "contacts_user_id_users_id_fk";
 --> statement-breakpoint
 DROP INDEX "contacts_user_email_idx";--> statement-breakpoint

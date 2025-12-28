@@ -85,7 +85,7 @@ ${normalized.content}`
 
     // Find or create contact for this sender
     const contact = normalized.sender.email
-      ? await ContactService.findOrCreate(targetProduct.userId, normalized.sender.email, normalized.sender.name)
+      ? await ContactService.findOrCreate(targetProduct.id, normalized.sender.email, normalized.sender.name)
       : null
 
     if (matchingRequest) {

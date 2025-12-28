@@ -1,10 +1,14 @@
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
 import { notFound } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
+  if (!user) {
+    throw createError({ statusCode: 401, message: 'Unauthorized' })
+  }
+
   const db = getDb()
   const contactId = getRouterParam(event, 'id')
 
@@ -12,11 +16,18 @@ export default defineEventHandler(async (event) => {
     notFound('Contact not found')
   }
 
-  // Get the contact and verify ownership
+  // Get user's products to verify ownership
+  const userProducts = await db.query.products.findMany({
+    where: eq(schema.products.userId, user.id),
+    columns: { id: true },
+  })
+  const productIds = userProducts.map(p => p.id)
+
+  // Get the contact and verify it belongs to user's product
   const contact = await db.query.contacts.findFirst({
     where: and(
       eq(schema.contacts.id, contactId),
-      eq(schema.contacts.userId, user.id)
+      inArray(schema.contacts.productId, productIds)
     ),
   })
 

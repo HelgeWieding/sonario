@@ -1,20 +1,20 @@
 import { H3Error } from 'h3'
 
-export function notFound(message = 'Resource not found') {
+export function notFound(message = 'Resource not found'): never {
   throw createError({
     statusCode: 404,
     message,
   })
 }
 
-export function badRequest(message = 'Bad request') {
+export function badRequest(message = 'Bad request'): never {
   throw createError({
     statusCode: 400,
     message,
   })
 }
 
-export function forbidden(message = 'Forbidden') {
+export function forbidden(message = 'Forbidden'): never {
   throw createError({
     statusCode: 403,
     message,

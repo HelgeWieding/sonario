@@ -94,7 +94,7 @@ definePageMeta({
             </div>
             <h3 class="mt-4 text-lg font-semibold text-gray-900">AI-Powered Detection</h3>
             <p class="mt-2 text-gray-600">
-              Our AI analyzes every message to identify feature requests, extracting titles, descriptions, and sentiment automatically.
+              Our AI analyzes every message to identify feature requests or user feedback, extracting titles, descriptions, and sentiment automatically.
             </p>
           </article>
 

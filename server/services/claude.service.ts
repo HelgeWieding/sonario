@@ -5,9 +5,7 @@ import type { Category, Sentiment, Status } from '~~/shared/constants'
 export interface DraftResponseContext {
   customerName: string | null
   featureTitle: string
-  featureDescription: string
   featureStatus: Status
-  feedbackCount: number
   productName: string
 }
 
@@ -192,17 +190,13 @@ A customer has written in about a feature that we already have on file as a feat
 Write a brief, helpful response that:
 1. Thanks them for their feedback
 2. Lets them know this feature request already exists and ${statusText}
-3. Mentions that ${context.feedbackCount} other customer${context.feedbackCount === 1 ? '' : 's'} ha${context.feedbackCount === 1 ? 's' : 've'} also requested this
-4. Keeps a warm, professional tone
-5. Is concise (2-3 short paragraphs max)
+3. Keeps a warm, professional tone
+4. Is concise (2-3 short paragraphs max)
+5. Do NOT mention any internal metrics, numbers, or statistics
 
-Feature Request Details:
-- Title: ${context.featureTitle}
-- Description: ${context.featureDescription}
-- Current Status: ${context.featureStatus}
-- Total requests: ${context.feedbackCount}
-
-${context.customerName ? `Customer name: ${context.customerName}` : 'Customer name: unknown'}
+Feature Request Title: ${context.featureTitle}
+Current Status: ${context.featureStatus}
+${context.customerName ? `Customer name: ${context.customerName}` : ''}
 
 Write ONLY the response body text, no subject line or signature. Start with a greeting.`,
           },

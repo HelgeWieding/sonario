@@ -189,17 +189,18 @@ export class HelpScoutService {
 
   /**
    * Create a draft reply in a HelpScout conversation
+   * Handles token expiration with automatic refresh
    */
   async createDraftReply(options: {
     conversationId: number | string
     customerEmail: string
     text: string
   }): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/conversations/${options.conversationId}/reply`, {
+    const makeRequest = async (token: string): Promise<Response> => {
+      return fetch(`${this.baseUrl}/conversations/${options.conversationId}/reply`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -208,6 +209,22 @@ export class HelpScoutService {
           draft: true,
         }),
       })
+    }
+
+    try {
+      let response = await makeRequest(this.accessToken)
+
+      // If unauthorized, try refreshing the token
+      if (response.status === 401) {
+        console.log('Access token expired, attempting refresh...')
+        const newToken = await this.refreshAccessToken()
+        if (newToken) {
+          response = await makeRequest(newToken)
+        } else {
+          console.error('Failed to refresh access token for draft creation')
+          return false
+        }
+      }
 
       if (!response.ok) {
         const error = await response.text()

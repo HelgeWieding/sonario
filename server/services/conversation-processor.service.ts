@@ -7,6 +7,7 @@ import { MessageTransformerService } from './message-transformer.service'
 import { getDb, schema } from '../db'
 import type { HelpScoutConnection } from '../db/schema/helpscout-connections'
 import type { HelpScoutConversation } from '~~/shared/types'
+import type { Status } from '~~/shared/constants'
 
 export class ConversationProcessorService {
   /**
@@ -15,7 +16,7 @@ export class ConversationProcessorService {
   static async processConversation(
     connection: HelpScoutConnection,
     conversation: HelpScoutConversation,
-    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null; autoDraftsEnabled: boolean }>
   ): Promise<void> {
     const db = getDb()
     const conversationId = String(conversation.id)
@@ -118,6 +119,23 @@ ${normalized.content}`
           updatedAt: new Date(),
         })
         .where(eq(schema.featureRequests.id, matchingRequest.id))
+
+      // Generate and push draft response if auto-drafts enabled
+      if (targetProduct.autoDraftsEnabled) {
+        await ConversationProcessorService.createDraftResponse(
+          connection,
+          conversation,
+          {
+            id: matchingRequest.id,
+            title: matchingRequest.title,
+            description: matchingRequest.description,
+            status: matchingRequest.status as Status,
+            feedbackCount: matchingRequest.feedbackCount + 1, // Include the new feedback
+          },
+          targetProduct,
+          normalized.sender.name
+        )
+      }
     } else {
       // Create a new feature request
       console.log(`Creating new feature request: ${extracted.title}`)
@@ -157,11 +175,56 @@ ${normalized.content}`
   }
 
   /**
+   * Create a draft response for a matched feature request
+   */
+  private static async createDraftResponse(
+    connection: HelpScoutConnection,
+    conversation: HelpScoutConversation,
+    matchingRequest: { id: string; title: string; description: string; status: Status; feedbackCount: number },
+    product: { name: string },
+    customerName: string | null
+  ): Promise<void> {
+    try {
+      const claudeService = new ClaudeService()
+      const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)
+
+      // Generate the draft response
+      const draftText = await claudeService.generateFeatureStatusDraft({
+        customerName,
+        featureTitle: matchingRequest.title,
+        featureDescription: matchingRequest.description,
+        featureStatus: matchingRequest.status,
+        feedbackCount: matchingRequest.feedbackCount,
+        productName: product.name,
+      })
+
+      if (!draftText) {
+        console.error(`Failed to generate draft for conversation ${conversation.id}`)
+        return
+      }
+
+      // Push to HelpScout
+      const success = await helpscoutService.createDraftReply({
+        conversationId: conversation.id,
+        customerEmail: conversation.primaryCustomer.email,
+        text: draftText,
+      })
+
+      if (success) {
+        console.log(`Draft response created for conversation ${conversation.id}`)
+      }
+    } catch (error) {
+      console.error('Error creating draft response:', error)
+      // Non-fatal: don't fail the whole processing
+    }
+  }
+
+  /**
    * Process all new conversations for a connection
    */
   static async processNewConversations(
     connection: HelpScoutConnection,
-    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null }>
+    products: Array<{ id: string; name: string; userId: string; emailFilter: string | null; autoDraftsEnabled: boolean }>
   ): Promise<number> {
     const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)
     const db = getDb()

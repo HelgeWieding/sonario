@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "auto_drafts_enabled" boolean DEFAULT false NOT NULL;

@@ -4,6 +4,7 @@ export interface Product {
   name: string
   description: string | null
   emailFilter: string | null
+  autoDraftsEnabled: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -23,4 +24,5 @@ export interface UpdateProductInput {
   name?: string
   description?: string
   emailFilter?: string
+  autoDraftsEnabled?: boolean
 }

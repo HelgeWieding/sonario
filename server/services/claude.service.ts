@@ -1,6 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { ExtractedFeatureRequest, FeatureRequest } from '~~/shared/types'
-import type { Category, Sentiment } from '~~/shared/constants'
+import type { Category, Sentiment, Status } from '~~/shared/constants'
+
+export interface DraftResponseContext {
+  customerName: string | null
+  featureTitle: string
+  featureDescription: string
+  featureStatus: Status
+  feedbackCount: number
+  productName: string
+}
 
 export class ClaudeService {
   private client: Anthropic
@@ -151,6 +160,59 @@ Your response:`,
       return null
     } catch (error) {
       console.error('Error finding matching request:', error)
+      return null
+    }
+  }
+
+  /**
+   * Generate a draft response to inform customer about existing feature request status
+   */
+  async generateFeatureStatusDraft(context: DraftResponseContext): Promise<string | null> {
+    try {
+      const statusDescriptions: Record<Status, string> = {
+        new: 'has been logged and is awaiting review',
+        reviewing: 'is currently being reviewed by our team',
+        planned: 'has been approved and is on our roadmap',
+        in_progress: 'is actively being worked on',
+        completed: 'has been completed',
+        rejected: 'has been reviewed but we are unable to implement it at this time',
+      }
+
+      const statusText = statusDescriptions[context.featureStatus] || 'is being tracked'
+
+      const response = await this.client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [
+          {
+            role: 'user',
+            content: `You are a friendly customer support representative for ${context.productName}.
+A customer has written in about a feature that we already have on file as a feature request.
+
+Write a brief, helpful response that:
+1. Thanks them for their feedback
+2. Lets them know this feature request already exists and ${statusText}
+3. Mentions that ${context.feedbackCount} other customer${context.feedbackCount === 1 ? '' : 's'} ha${context.feedbackCount === 1 ? 's' : 've'} also requested this
+4. Keeps a warm, professional tone
+5. Is concise (2-3 short paragraphs max)
+
+Feature Request Details:
+- Title: ${context.featureTitle}
+- Description: ${context.featureDescription}
+- Current Status: ${context.featureStatus}
+- Total requests: ${context.feedbackCount}
+
+${context.customerName ? `Customer name: ${context.customerName}` : 'Customer name: unknown'}
+
+Write ONLY the response body text, no subject line or signature. Start with a greeting.`,
+          },
+        ],
+      })
+
+      const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
+      return text.trim() || null
+    } catch (error) {
+      console.error('Error generating feature status draft:', error)
       return null
     }
   }

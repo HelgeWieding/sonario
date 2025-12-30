@@ -6,6 +6,7 @@ definePageMeta({
 const { products, fetchProducts, updateProduct } = useProducts()
 
 const productName = ref('')
+const autoDraftsEnabled = ref(false)
 const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
@@ -14,6 +15,7 @@ onMounted(async () => {
   await fetchProducts()
   if (products.value.length > 0) {
     productName.value = products.value[0].name
+    autoDraftsEnabled.value = products.value[0].autoDraftsEnabled ?? false
   }
   loading.value = false
 })
@@ -26,6 +28,7 @@ async function handleSave() {
 
   const success = await updateProduct(products.value[0].id, {
     name: productName.value.trim(),
+    autoDraftsEnabled: autoDraftsEnabled.value,
   })
 
   saving.value = false
@@ -47,13 +50,13 @@ async function handleSave() {
       <UiSpinner size="lg" />
     </div>
 
-    <UiCard v-else>
-      <h2 class="font-semibold text-gray-900 mb-4">Product Name</h2>
-      <p class="text-sm text-gray-500 mb-4">
-        This is the name of your product. Feature requests will be associated with this product.
-      </p>
+    <div v-else class="space-y-6">
+      <UiCard>
+        <h2 class="font-semibold text-gray-900 mb-4">Product Name</h2>
+        <p class="text-sm text-gray-500 mb-4">
+          This is the name of your product. Feature requests will be associated with this product.
+        </p>
 
-      <div class="space-y-4">
         <div>
           <label class="label">Name</label>
           <UiInput
@@ -62,14 +65,32 @@ async function handleSave() {
             @keyup.enter="handleSave"
           />
         </div>
+      </UiCard>
 
-        <div class="flex items-center gap-3">
-          <UiButton :loading="saving" @click="handleSave">
-            Save Changes
-          </UiButton>
-          <span v-if="saved" class="text-sm text-green-600">Saved!</span>
+      <UiCard>
+        <h2 class="font-semibold text-gray-900 mb-4">HelpScout Auto-Drafts</h2>
+        <p class="text-sm text-gray-500 mb-4">
+          When enabled, automatically generate draft responses in HelpScout when a customer
+          writes about an existing feature request. Drafts are saved for your review before sending.
+        </p>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-medium text-gray-900">Enable Auto-Drafts</p>
+            <p class="text-sm text-gray-500">
+              Only applies to conversations matching existing feature requests
+            </p>
+          </div>
+          <UiToggle v-model="autoDraftsEnabled" />
         </div>
+      </UiCard>
+
+      <div class="flex items-center gap-3">
+        <UiButton :loading="saving" @click="handleSave">
+          Save Changes
+        </UiButton>
+        <span v-if="saved" class="text-sm text-green-600">Saved!</span>
       </div>
-    </UiCard>
+    </div>
   </div>
 </template>

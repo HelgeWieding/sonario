@@ -188,6 +188,42 @@ export class HelpScoutService {
   }
 
   /**
+   * Create a draft reply in a HelpScout conversation
+   */
+  async createDraftReply(options: {
+    conversationId: number | string
+    customerEmail: string
+    text: string
+  }): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/conversations/${options.conversationId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer: { email: options.customerEmail },
+          text: options.text,
+          draft: true,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error(`Failed to create draft reply for conversation ${options.conversationId}:`, error)
+        return false
+      }
+
+      console.log(`Draft reply created for conversation ${options.conversationId}`)
+      return true
+    } catch (error) {
+      console.error('Error creating draft reply:', error)
+      return false
+    }
+  }
+
+  /**
    * Verify webhook signature
    */
   static verifyWebhook(payload: string, signature: string, secret: string): boolean {

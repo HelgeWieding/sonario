@@ -8,6 +8,7 @@ const updateProductSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   emailFilter: z.string().max(200).optional(),
+  autoDraftsEnabled: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {

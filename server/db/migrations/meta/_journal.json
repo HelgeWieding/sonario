@@ -22,6 +22,13 @@
       "when": 1766945904464,
       "tag": "0002_small_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1767118866006,
+      "tag": "0003_wakeful_stark_industries",
+      "breakpoints": true
     }
   ]
 }

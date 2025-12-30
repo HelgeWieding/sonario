@@ -36,6 +36,7 @@ export class GmailService {
       prompt: 'consent',
       scope: [
         'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.compose', // For creating draft responses
       ],
     })
   }
@@ -202,6 +203,65 @@ export class GmailService {
       }
     } catch (error) {
       console.error('Failed to get message:', error)
+      return null
+    }
+  }
+
+  /**
+   * Create a draft reply to an email
+   * Returns the draft ID if successful, null otherwise
+   */
+  async createDraft(options: {
+    to: string
+    subject: string
+    body: string
+    threadId?: string
+    inReplyTo?: string
+  }): Promise<string | null> {
+    try {
+      // Build email headers
+      const headers = [
+        `To: ${options.to}`,
+        `Subject: ${options.subject}`,
+        'Content-Type: text/plain; charset=utf-8',
+      ]
+
+      // Add In-Reply-To header if replying to a thread
+      if (options.inReplyTo) {
+        headers.push(`In-Reply-To: ${options.inReplyTo}`)
+        headers.push(`References: ${options.inReplyTo}`)
+      }
+
+      // Build raw email (RFC 2822 format)
+      const rawEmail = [...headers, '', options.body].join('\r\n')
+
+      // Encode to base64url (Gmail API requirement)
+      const encodedMessage = Buffer.from(rawEmail)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '')
+
+      const requestBody: gmail_v1.Schema$Draft = {
+        message: {
+          raw: encodedMessage,
+        },
+      }
+
+      // If replying to a thread, include the threadId
+      if (options.threadId) {
+        requestBody.message!.threadId = options.threadId
+      }
+
+      const response = await this.gmail.users.drafts.create({
+        userId: 'me',
+        requestBody,
+      })
+
+      console.log(`Draft created with ID: ${response.data.id}`)
+      return response.data.id || null
+    } catch (error) {
+      console.error('Failed to create draft:', error)
       return null
     }
   }

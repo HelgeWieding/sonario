@@ -89,8 +89,14 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Use the product we already have
-  const products = [product]
+  // Use the product we already have (include autoDraftsEnabled for draft creation)
+  const products = [{
+    id: product.id,
+    name: product.name,
+    userId: product.userId,
+    emailFilter: product.emailFilter,
+    autoDraftsEnabled: product.autoDraftsEnabled,
+  }]
 
   // Process each new message
   let processed = 0

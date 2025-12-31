@@ -1,20 +1,11 @@
-import type { Category, Status } from '../constants/enums'
-import type { Sentiment } from '../constants/enums'
+// Re-export the base FeatureRequest type from Drizzle schema (single source of truth)
+export type { FeatureRequest, NewFeatureRequest } from '~~/server/db/schema/feature-requests'
 
-export interface FeatureRequest {
-  id: string
-  productId: string
-  title: string
-  description: string
-  category: Category
-  status: Status
-  feedbackCount: number
-  aiGenerated: boolean
-  sourceEmailId: string | null
-  createdAt: Date
-  updatedAt: Date
-}
+// Import for extending
+import type { FeatureRequest } from '~~/server/db/schema/feature-requests'
+import type { Category, Status, Sentiment } from '../constants/enums'
 
+// Enriched types (not directly from DB)
 export interface FeatureRequestWithFeedback extends FeatureRequest {
   feedback: Array<{
     id: string
@@ -26,6 +17,7 @@ export interface FeatureRequestWithFeedback extends FeatureRequest {
   }>
 }
 
+// API input types
 export interface CreateFeatureRequestInput {
   productId: string
   title: string
@@ -40,6 +32,7 @@ export interface UpdateFeatureRequestInput {
   status?: Status
 }
 
+// Types used for AI extraction
 export interface ExtractedFeatureRequest {
   title: string
   description: string

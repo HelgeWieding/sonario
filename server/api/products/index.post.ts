@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
 import { badRequest, handleDbError } from '../../utils/errors'
 
 const createProductSchema = z.object({
@@ -11,7 +11,6 @@ const createProductSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
 
   const body = await readBody(event)
   const result = createProductSchema.safeParse(body)
@@ -21,12 +20,12 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const [product] = await db.insert(schema.products).values({
+    const product = await productRepository.create({
       userId: user.id,
       name: result.data!.name,
-      description: result.data!.description || null,
-      emailFilter: result.data!.emailFilter || null,
-    }).returning()
+      description: result.data!.description,
+      emailFilter: result.data!.emailFilter,
+    })
 
     return { data: product }
   } catch (error) {

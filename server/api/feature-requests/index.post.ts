@@ -1,7 +1,7 @@
-import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
+import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { badRequest, handleDbError } from '../../utils/errors'
 import { CATEGORIES } from '~~/shared/constants'
 
@@ -14,7 +14,6 @@ const createFeatureRequestSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
 
   const body = await readBody(event)
   const result = createFeatureRequestSchema.safeParse(body)
@@ -24,25 +23,19 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify user owns this product
-  const product = await db.query.products.findFirst({
-    where: and(
-      eq(schema.products.id, result.data!.productId),
-      eq(schema.products.userId, user.id)
-    ),
-  })
-
-  if (!product) {
+  const ownsProduct = await productRepository.verifyOwnership(result.data!.productId, user.id)
+  if (!ownsProduct) {
     badRequest('Product not found')
   }
 
   try {
-    const [featureRequest] = await db.insert(schema.featureRequests).values({
+    const featureRequest = await featureRequestRepository.create({
       productId: result.data!.productId,
       title: result.data!.title,
       description: result.data!.description,
-      category: result.data!.category || 'feature',
+      category: result.data!.category,
       aiGenerated: false,
-    }).returning()
+    })
 
     return { data: featureRequest }
   } catch (error) {

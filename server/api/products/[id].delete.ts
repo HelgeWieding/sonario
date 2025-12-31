@@ -1,11 +1,9 @@
-import { eq, and } from 'drizzle-orm'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
 import { notFound, handleDbError } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -13,15 +11,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const [product] = await db
-      .delete(schema.products)
-      .where(
-        and(
-          eq(schema.products.id, id),
-          eq(schema.products.userId, user.id)
-        )
-      )
-      .returning()
+    const product = await productRepository.delete(id, user.id)
 
     if (!product) {
       notFound('Product not found')

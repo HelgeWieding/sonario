@@ -1,8 +1,9 @@
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
 import { GmailService } from '../../services/gmail.service'
 import { EmailProcessorService } from '../../services/email-processor.service'
+import { processedMessageRepository } from '../../repositories/processed-message.repository'
 
 /**
  * Manually trigger email sync - useful for local development without Pub/Sub
@@ -102,12 +103,7 @@ export default defineEventHandler(async (event) => {
   let processed = 0
   for (const messageId of messageIds) {
     // Check if already processed (using unified processed_messages table)
-    const existing = await db.query.processedMessages.findFirst({
-      where: and(
-        eq(schema.processedMessages.source, 'gmail'),
-        eq(schema.processedMessages.sourceMessageId, messageId)
-      ),
-    })
+    const existing = await processedMessageRepository.findBySourceId('gmail', messageId)
 
     if (!existing) {
       try {

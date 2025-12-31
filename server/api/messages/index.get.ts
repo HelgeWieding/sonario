@@ -1,34 +1,13 @@
-import { eq, and, desc, count, inArray } from 'drizzle-orm'
-import { getDb, schema } from '../../db'
+import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
+import { processedMessageRepository } from '../../repositories/processed-message.repository'
+import type { MessageSource } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
-  // Authenticate user
-  const { userId: clerkUserId } = event.context.auth()
-  if (!clerkUserId) {
-    throw createError({
-      statusCode: 401,
-      message: 'Unauthorized',
-    })
-  }
-
-  const db = getDb()
-
-  // Get internal user ID
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.clerkId, clerkUserId),
-  })
-
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      message: 'User not found',
-    })
-  }
+  const user = await getOrCreateUser(event)
 
   // Get user's products
-  const products = await db.query.products.findMany({
-    where: eq(schema.products.userId, user.id),
-  })
+  const products = await productRepository.findAllByUserId(user.id)
 
   if (products.length === 0) {
     return {
@@ -40,47 +19,17 @@ export default defineEventHandler(async (event) => {
   const productIds = products.map(p => p.id)
   const query = getQuery(event)
 
-  const source = query.source as string | undefined
+  const source = query.source as MessageSource | undefined
   const isFeatureRequest = query.isFeatureRequest as string | undefined
-  const page = Math.max(1, parseInt(query.page as string) || 1)
-  const limit = Math.min(100, Math.max(1, parseInt(query.limit as string) || 20))
-  const offset = (page - 1) * limit
+  const page = parseInt(query.page as string) || 1
+  const limit = parseInt(query.limit as string) || 20
 
-  // Build conditions - filter by user's products
-  const conditions: ReturnType<typeof eq>[] = [
-    inArray(schema.processedMessages.productId, productIds),
-  ]
-
-  if (source) {
-    conditions.push(eq(schema.processedMessages.source, source as any))
-  }
-  if (isFeatureRequest !== undefined) {
-    conditions.push(eq(schema.processedMessages.isFeatureRequest, isFeatureRequest === 'true'))
-  }
-
-  const whereClause = and(...conditions)
-
-  // Get total count
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(schema.processedMessages)
-    .where(whereClause)
-
-  // Get paginated messages
-  const messages = await db.query.processedMessages.findMany({
-    where: whereClause,
-    orderBy: [desc(schema.processedMessages.processedAt)],
+  const result = await processedMessageRepository.findAllByProductIds(productIds, {
+    source,
+    isFeatureRequest: isFeatureRequest !== undefined ? isFeatureRequest === 'true' : undefined,
+    page,
     limit,
-    offset,
   })
 
-  return {
-    data: messages,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  }
+  return result
 })

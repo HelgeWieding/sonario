@@ -1,7 +1,6 @@
-import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
 import { notFound, badRequest, handleDbError } from '../../utils/errors'
 
 const updateProductSchema = z.object({
@@ -13,7 +12,6 @@ const updateProductSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -28,19 +26,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const [product] = await db
-      .update(schema.products)
-      .set({
-        ...result.data,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(schema.products.id, id),
-          eq(schema.products.userId, user.id)
-        )
-      )
-      .returning()
+    const product = await productRepository.update(id, user.id, result.data!)
 
     if (!product) {
       notFound('Product not found')

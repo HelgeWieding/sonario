@@ -1,8 +1,9 @@
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
 import { HelpScoutService } from '../../services/helpscout.service'
 import { ConversationProcessorService } from '../../services/conversation-processor.service'
+import { processedMessageRepository } from '../../repositories/processed-message.repository'
 
 /**
  * Manually trigger Help Scout sync - fetch recent conversations and process them
@@ -56,12 +57,7 @@ export default defineEventHandler(async (event) => {
   let processed = 0
   for (const conversation of conversations) {
     // Check if already processed (using unified processed_messages table)
-    const existing = await db.query.processedMessages.findFirst({
-      where: and(
-        eq(schema.processedMessages.source, 'helpscout'),
-        eq(schema.processedMessages.sourceMessageId, String(conversation.id))
-      ),
-    })
+    const existing = await processedMessageRepository.findBySourceId('helpscout', String(conversation.id))
 
     if (!existing) {
       await ConversationProcessorService.processConversation(

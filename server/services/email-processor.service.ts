@@ -1,10 +1,12 @@
-import { eq, and, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { GmailService } from './gmail.service'
 import { ClaudeService } from './claude.service'
 import { FeatureMatcherService } from './feature-matcher.service'
 import { ContactService } from './contact.service'
 import { MessageTransformerService } from './message-transformer.service'
 import { getDb, schema } from '../db'
+import { processedMessageRepository } from '../repositories/processed-message.repository'
+import { featureRequestRepository } from '../repositories/feature-request.repository'
 import type { GmailConnection } from '../db/schema/gmail-connections'
 import type { GmailMessage } from '~~/shared/types'
 import type { Status } from '~~/shared/constants'
@@ -101,12 +103,7 @@ export class EmailProcessorService {
     const db = getDb()
 
     // Check if already processed (using unified processed_messages table)
-    const existing = await db.query.processedMessages.findFirst({
-      where: and(
-        eq(schema.processedMessages.source, 'gmail'),
-        eq(schema.processedMessages.sourceMessageId, messageId)
-      ),
-    })
+    const existing = await processedMessageRepository.findBySourceId('gmail', messageId)
 
     if (existing) {
       console.log(`Message ${messageId} already processed`)
@@ -138,7 +135,7 @@ export class EmailProcessorService {
 
     // STEP 1: Save processed message FIRST (before any AI analysis)
     // This ensures we have a record even if later steps fail
-    const [processedMessage] = await db.insert(schema.processedMessages).values({
+    const processedMessage = await processedMessageRepository.create({
       productId: targetProduct.id,
       source: 'gmail',
       sourceMessageId: normalized.sourceId,
@@ -148,7 +145,7 @@ export class EmailProcessorService {
       senderName: normalized.sender.name,
       content: normalized.content,
       isFeatureRequest: false, // Default to false, update later if detected
-    }).returning()
+    })
 
     // STEP 2: Check if it's a feature request (wrapped in try/catch)
     let isFeatureRequest = false
@@ -162,9 +159,7 @@ export class EmailProcessorService {
 
     // Update the processed message with feature request status
     if (isFeatureRequest) {
-      await db.update(schema.processedMessages)
-        .set({ isFeatureRequest: true })
-        .where(eq(schema.processedMessages.id, processedMessage.id))
+      await processedMessageRepository.update(processedMessage.id, { isFeatureRequest: true })
     }
 
     if (!isFeatureRequest) {
@@ -233,18 +228,10 @@ export class EmailProcessorService {
         }).returning()
 
         // Update processed message with feedback reference
-        await db.update(schema.processedMessages)
-          .set({ feedbackId: newFeedback.id })
-          .where(eq(schema.processedMessages.id, processedMessage.id))
+        await processedMessageRepository.update(processedMessage.id, { feedbackId: newFeedback.id })
 
         // Increment feedback count
-        await db
-          .update(schema.featureRequests)
-          .set({
-            feedbackCount: sql`${schema.featureRequests.feedbackCount} + 1`,
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.featureRequests.id, matchingRequest.id))
+        await featureRequestRepository.incrementFeedbackCount(matchingRequest.id)
 
         // Generate and push draft response if auto-drafts enabled
         // This is non-blocking - failures don't affect the rest of processing
@@ -272,7 +259,7 @@ export class EmailProcessorService {
       console.log(`Creating new feature request: ${extracted.title}`)
 
       try {
-        const [newRequest] = await db.insert(schema.featureRequests).values({
+        const newRequest = await featureRequestRepository.create({
           productId: targetProduct.id,
           title: extracted.title,
           description: extracted.description,
@@ -280,7 +267,7 @@ export class EmailProcessorService {
           category: extracted.category,
           aiGenerated: true,
           sourceEmailId: normalized.sourceId,
-        }).returning()
+        })
 
         // Always create initial feedback to track the requester
         const [newFeedback] = await db.insert(schema.feedback).values({
@@ -297,12 +284,10 @@ export class EmailProcessorService {
         }).returning()
 
         // Update processed message with references
-        await db.update(schema.processedMessages)
-          .set({
-            featureRequestId: newRequest.id,
-            feedbackId: newFeedback.id,
-          })
-          .where(eq(schema.processedMessages.id, processedMessage.id))
+        await processedMessageRepository.update(processedMessage.id, {
+          featureRequestId: newRequest.id,
+          feedbackId: newFeedback.id,
+        })
       } catch (error) {
         console.error(`Failed to create feature request for message ${messageId}:`, error)
         // Processed message is already saved, can be manually assigned later

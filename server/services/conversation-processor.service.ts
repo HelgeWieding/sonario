@@ -1,10 +1,11 @@
-import { eq, and, sql } from 'drizzle-orm'
 import { HelpScoutService } from './helpscout.service'
 import { ClaudeService } from './claude.service'
 import { FeatureMatcherService } from './feature-matcher.service'
 import { ContactService } from './contact.service'
 import { MessageTransformerService } from './message-transformer.service'
 import { getDb, schema } from '../db'
+import { processedMessageRepository } from '../repositories/processed-message.repository'
+import { featureRequestRepository } from '../repositories/feature-request.repository'
 import type { HelpScoutConnection } from '../db/schema/helpscout-connections'
 import type { HelpScoutConversation } from '~~/shared/types'
 import type { Status } from '~~/shared/constants'
@@ -23,12 +24,7 @@ export class ConversationProcessorService {
     const conversationId = String(conversation.id)
 
     // Check if already processed (using unified processed_messages table)
-    const existing = await db.query.processedMessages.findFirst({
-      where: and(
-        eq(schema.processedMessages.source, 'helpscout'),
-        eq(schema.processedMessages.sourceMessageId, conversationId)
-      ),
-    })
+    const existing = await processedMessageRepository.findBySourceId('helpscout', conversationId)
 
     if (existing) {
       console.log(`Conversation ${conversationId} already processed`)
@@ -50,7 +46,7 @@ ${normalized.content}`
 
     // STEP 1: Save processed message FIRST (before any AI analysis)
     // This ensures we have a record even if later steps fail
-    const [processedMessage] = await db.insert(schema.processedMessages).values({
+    const processedMessage = await processedMessageRepository.create({
       productId: targetProduct.id,
       source: 'helpscout',
       sourceMessageId: conversationId,
@@ -59,7 +55,7 @@ ${normalized.content}`
       senderName: normalized.sender.name,
       content: normalized.content,
       isFeatureRequest: false, // Default to false, update later if detected
-    }).returning()
+    })
 
     // STEP 2: Check if it's a feature request (wrapped in try/catch)
     let isFeatureRequest = false
@@ -73,9 +69,7 @@ ${normalized.content}`
 
     // Update the processed message with feature request status
     if (isFeatureRequest) {
-      await db.update(schema.processedMessages)
-        .set({ isFeatureRequest: true })
-        .where(eq(schema.processedMessages.id, processedMessage.id))
+      await processedMessageRepository.update(processedMessage.id, { isFeatureRequest: true })
     }
 
     if (!isFeatureRequest) {
@@ -144,18 +138,10 @@ ${normalized.content}`
         }).returning()
 
         // Update processed message with feedback reference
-        await db.update(schema.processedMessages)
-          .set({ feedbackId: newFeedback.id })
-          .where(eq(schema.processedMessages.id, processedMessage.id))
+        await processedMessageRepository.update(processedMessage.id, { feedbackId: newFeedback.id })
 
         // Increment feedback count
-        await db
-          .update(schema.featureRequests)
-          .set({
-            feedbackCount: sql`${schema.featureRequests.feedbackCount} + 1`,
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.featureRequests.id, matchingRequest.id))
+        await featureRequestRepository.incrementFeedbackCount(matchingRequest.id)
 
         // Generate and push draft response if auto-drafts enabled
         // This is non-blocking - failures don't affect the rest of processing
@@ -183,7 +169,7 @@ ${normalized.content}`
       console.log(`Creating new feature request: ${extracted.title}`)
 
       try {
-        const [newRequest] = await db.insert(schema.featureRequests).values({
+        const newRequest = await featureRequestRepository.create({
           productId: targetProduct.id,
           title: extracted.title,
           description: extracted.description,
@@ -191,7 +177,7 @@ ${normalized.content}`
           category: extracted.category,
           aiGenerated: true,
           sourceEmailId: `helpscout-${conversationId}`,
-        }).returning()
+        })
 
         // Always create initial feedback to track the requester
         const [newFeedback] = await db.insert(schema.feedback).values({
@@ -208,12 +194,10 @@ ${normalized.content}`
         }).returning()
 
         // Update processed message with references
-        await db.update(schema.processedMessages)
-          .set({
-            featureRequestId: newRequest.id,
-            feedbackId: newFeedback.id,
-          })
-          .where(eq(schema.processedMessages.id, processedMessage.id))
+        await processedMessageRepository.update(processedMessage.id, {
+          featureRequestId: newRequest.id,
+          feedbackId: newFeedback.id,
+        })
       } catch (error) {
         console.error(`Failed to create feature request for conversation ${conversationId}:`, error)
         // Processed message is already saved, can be manually assigned later
@@ -286,19 +270,13 @@ ${normalized.content}`
     products: Array<{ id: string; name: string; userId: string; emailFilter: string | null; autoDraftsEnabled: boolean }>
   ): Promise<number> {
     const helpscoutService = new HelpScoutService(connection.accessToken, connection.refreshToken)
-    const db = getDb()
 
     // Get recent conversations
     const conversations = await helpscoutService.getRecentConversations(undefined, 20)
 
     let processed = 0
     for (const conversation of conversations) {
-      const existing = await db.query.processedMessages.findFirst({
-        where: and(
-          eq(schema.processedMessages.source, 'helpscout'),
-          eq(schema.processedMessages.sourceMessageId, String(conversation.id))
-        ),
-      })
+      const existing = await processedMessageRepository.findBySourceId('helpscout', String(conversation.id))
 
       if (!existing) {
         // Fetch full conversation with threads

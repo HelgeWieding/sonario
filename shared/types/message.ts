@@ -1,5 +1,11 @@
-// Normalized message types for cross-source compatibility
+// Re-export the base ProcessedMessage type from Drizzle schema (single source of truth)
+export type {
+  ProcessedMessage,
+  NewProcessedMessage,
+  MessageSource,
+} from '~~/server/db/schema/processed-messages'
 
+// Normalized message types for cross-source compatibility (used by transformers)
 export interface NormalizedSender {
   email: string
   name: string | null

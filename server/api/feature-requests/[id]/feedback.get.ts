@@ -1,11 +1,9 @@
-import { eq } from 'drizzle-orm'
-import { getDb, schema } from '../../../db'
 import { getOrCreateUser } from '../../../utils/auth'
+import { featureRequestRepository } from '../../../repositories/feature-request.repository'
 import { notFound } from '../../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -13,19 +11,12 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify ownership
-  const featureRequest = await db.query.featureRequests.findFirst({
-    where: eq(schema.featureRequests.id, id),
-    with: { product: true },
-  })
-
+  const featureRequest = await featureRequestRepository.findByIdWithProduct(id)
   if (!featureRequest || featureRequest.product.userId !== user.id) {
     notFound('Feature request not found')
   }
 
-  const feedbackList = await db.query.feedback.findMany({
-    where: eq(schema.feedback.featureRequestId, id),
-    orderBy: (feedback, { desc }) => [desc(feedback.createdAt)],
-  })
+  const feedbackList = await featureRequestRepository.getFeedback(id)
 
   return { data: feedbackList }
 })

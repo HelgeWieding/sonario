@@ -1,19 +1,16 @@
-export interface Product {
-  id: string
-  userId: string
-  name: string
-  description: string | null
-  emailFilter: string | null
-  autoDraftsEnabled: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+// Re-export the base Product type from Drizzle schema (single source of truth)
+export type { Product, NewProduct } from '~~/server/db/schema/products'
 
+// Import for extending
+import type { Product } from '~~/server/db/schema/products'
+
+// Enriched types (not directly from DB)
 export interface ProductWithStats extends Product {
   featureRequestCount: number
   newRequestCount: number
 }
 
+// API input types
 export interface CreateProductInput {
   name: string
   description?: string

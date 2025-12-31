@@ -1,7 +1,6 @@
-import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { notFound, badRequest, handleDbError } from '../../utils/errors'
 import { CATEGORIES, STATUSES } from '~~/shared/constants'
 
@@ -14,7 +13,6 @@ const updateFeatureRequestSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -29,24 +27,13 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get the feature request to verify ownership
-  const existing = await db.query.featureRequests.findFirst({
-    where: eq(schema.featureRequests.id, id),
-    with: { product: true },
-  })
-
+  const existing = await featureRequestRepository.findByIdWithProduct(id)
   if (!existing || existing.product.userId !== user.id) {
     notFound('Feature request not found')
   }
 
   try {
-    const [featureRequest] = await db
-      .update(schema.featureRequests)
-      .set({
-        ...result.data,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.featureRequests.id, id))
-      .returning()
+    const featureRequest = await featureRequestRepository.update(id, result.data!)
 
     return { data: featureRequest }
   } catch (error) {

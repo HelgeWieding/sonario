@@ -160,6 +160,22 @@ class FeatureRequestRepository {
   }
 
   /**
+   * Decrement the feedback count for a feature request (minimum 0)
+   */
+  async decrementFeedbackCount(id: string): Promise<FeatureRequest | null> {
+    const [featureRequest] = await this.db
+      .update(schema.featureRequests)
+      .set({
+        feedbackCount: sql`GREATEST(${schema.featureRequests.feedbackCount} - 1, 0)`,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.featureRequests.id, id))
+      .returning()
+
+    return featureRequest ?? null
+  }
+
+  /**
    * Delete a feature request by ID
    */
   async delete(id: string): Promise<boolean> {

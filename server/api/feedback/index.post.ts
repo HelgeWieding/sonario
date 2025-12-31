@@ -1,7 +1,8 @@
-import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
+import { featureRequestRepository } from '../../repositories/feature-request.repository'
+import { feedbackRepository } from '../../repositories/feedback.repository'
 import { badRequest, notFound, handleDbError } from '../../utils/errors'
 import { SENTIMENTS } from '~~/shared/constants'
 
@@ -16,7 +17,6 @@ const createFeedbackSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
 
   const body = await readBody(event)
   const result = createFeedbackSchema.safeParse(body)
@@ -26,45 +26,33 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify user owns the product
-  const product = await db.query.products.findFirst({
-    where: eq(schema.products.id, result.data!.productId),
-  })
-
-  if (!product || product.userId !== user.id) {
+  const ownsProduct = await productRepository.verifyOwnership(result.data!.productId, user.id)
+  if (!ownsProduct) {
     notFound('Product not found')
   }
 
   // If featureRequestId is provided, verify it belongs to the same product
   if (result.data!.featureRequestId) {
-    const featureRequest = await db.query.featureRequests.findFirst({
-      where: eq(schema.featureRequests.id, result.data!.featureRequestId),
-    })
-
+    const featureRequest = await featureRequestRepository.findById(result.data!.featureRequestId)
     if (!featureRequest || featureRequest.productId !== result.data!.productId) {
       notFound('Feature request not found')
     }
   }
 
   try {
-    const [feedback] = await db.insert(schema.feedback).values({
+    const feedback = await feedbackRepository.create({
       productId: result.data!.productId,
       featureRequestId: result.data!.featureRequestId || null,
       content: result.data!.content,
-      sentiment: result.data!.sentiment || 'neutral',
+      sentiment: result.data!.sentiment,
       senderEmail: result.data!.senderEmail || null,
       senderName: result.data!.senderName || null,
       aiExtracted: false,
-    }).returning()
+    })
 
     // Increment feedback count on feature request if linked
     if (result.data!.featureRequestId) {
-      await db
-        .update(schema.featureRequests)
-        .set({
-          feedbackCount: sql`${schema.featureRequests.feedbackCount} + 1`,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.featureRequests.id, result.data!.featureRequestId))
+      await featureRequestRepository.incrementFeedbackCount(result.data!.featureRequestId)
     }
 
     return { data: feedback }

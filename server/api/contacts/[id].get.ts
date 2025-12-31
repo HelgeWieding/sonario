@@ -1,6 +1,6 @@
-import { eq, and, desc, inArray } from 'drizzle-orm'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { productRepository } from '../../repositories/product.repository'
+import { contactRepository } from '../../repositories/contact.repository'
 import { notFound } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +9,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Unauthorized' })
   }
 
-  const db = getDb()
   const contactId = getRouterParam(event, 'id')
 
   if (!contactId) {
@@ -17,43 +16,20 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get user's products to verify ownership
-  const userProducts = await db.query.products.findMany({
-    where: eq(schema.products.userId, user.id),
-    columns: { id: true },
-  })
+  const userProducts = await productRepository.findAllByUserId(user.id)
   const productIds = userProducts.map(p => p.id)
 
-  // Get the contact and verify it belongs to user's product
-  const contact = await db.query.contacts.findFirst({
-    where: and(
-      eq(schema.contacts.id, contactId),
-      inArray(schema.contacts.productId, productIds)
-    ),
-  })
+  // Verify contact belongs to user's product
+  const contactExists = await contactRepository.findByIdWithinProducts(contactId, productIds)
+  if (!contactExists) {
+    notFound('Contact not found')
+  }
 
+  // Get the contact with all feedback
+  const contact = await contactRepository.findByIdWithFeedback(contactId)
   if (!contact) {
     notFound('Contact not found')
   }
 
-  // Get all feedback from this contact with feature request info
-  const feedbackItems = await db.query.feedback.findMany({
-    where: eq(schema.feedback.contactId, contactId),
-    with: {
-      featureRequest: {
-        columns: {
-          id: true,
-          title: true,
-          productId: true,
-        },
-      },
-    },
-    orderBy: [desc(schema.feedback.createdAt)],
-  })
-
-  return {
-    data: {
-      ...contact,
-      feedback: feedbackItems,
-    },
-  }
+  return { data: contact }
 })

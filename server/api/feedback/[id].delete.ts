@@ -1,11 +1,10 @@
-import { eq, sql } from 'drizzle-orm'
-import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { feedbackRepository } from '../../repositories/feedback.repository'
+import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { notFound, handleDbError } from '../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
-  const db = getDb()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -13,30 +12,19 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get feedback with feature request and product to verify ownership
-  const feedbackItem = await db.query.feedback.findFirst({
-    where: eq(schema.feedback.id, id),
-    with: {
-      featureRequest: {
-        with: { product: true },
-      },
-    },
-  })
+  const feedbackItem = await feedbackRepository.findByIdWithRelations(id)
 
-  if (!feedbackItem || feedbackItem.featureRequest.product.userId !== user.id) {
+  if (!feedbackItem || !feedbackItem.featureRequest || feedbackItem.featureRequest.product.userId !== user.id) {
     notFound('Feedback not found')
   }
 
   try {
-    await db.delete(schema.feedback).where(eq(schema.feedback.id, id))
+    await feedbackRepository.delete(id)
 
     // Decrement feedback count on feature request
-    await db
-      .update(schema.featureRequests)
-      .set({
-        feedbackCount: sql`GREATEST(${schema.featureRequests.feedbackCount} - 1, 0)`,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.featureRequests.id, feedbackItem.featureRequestId))
+    if (feedbackItem.featureRequestId) {
+      await featureRequestRepository.decrementFeedbackCount(feedbackItem.featureRequestId)
+    }
 
     return { data: { success: true } }
   } catch (error) {

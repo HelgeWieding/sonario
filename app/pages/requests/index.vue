@@ -10,11 +10,10 @@ onMounted(async () => {
   await fetchProducts()
 
   if (products.value.length > 0) {
-    // Redirect to the user's product
-    router.replace(`/products/${products.value[0].id}`)
+    // Redirect to the user's product feature requests
+    router.replace(`/${products.value[0].slug}/feature-requests`)
   } else {
-    // No product found - this shouldn't happen with auto-creation
-    // but fallback to dashboard
+    // No product found - fallback to dashboard
     router.replace('/dashboard')
   }
 })

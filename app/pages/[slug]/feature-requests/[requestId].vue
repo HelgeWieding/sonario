@@ -7,8 +7,12 @@ definePageMeta({
 })
 
 const route = useRoute()
-const productId = route.params.productId as string
+const urlSlug = computed(() => route.params.slug as string)
 const requestId = route.params.requestId as string
+
+// Get user's product and redirect if slug doesn't match
+const { product, fetchProduct } = useProduct()
+const productNotFound = ref(false)
 
 const { getRequest, updateRequest, deleteRequest } = useFeatureRequests()
 const { addFeedback, deleteFeedback } = useFeedback()
@@ -39,7 +43,7 @@ async function handleStatusChange(status: string) {
 async function handleDelete() {
   const success = await deleteRequest(requestId)
   if (success) {
-    router.push(`/products/${productId}`)
+    router.push(`/${product.value?.slug}/feature-requests`)
   }
 }
 
@@ -64,28 +68,62 @@ async function handleDeleteFeedback(feedbackId: string) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchProduct()
+
+  if (!product.value) {
+    productNotFound.value = true
+    loading.value = false
+    return
+  }
+
+  // Redirect to correct slug if URL doesn't match
+  if (urlSlug.value !== product.value.slug) {
+    navigateTo(`/${product.value.slug}/feature-requests/${requestId}`, { replace: true })
+    return
+  }
+
   loadRequest()
 })
 </script>
 
 <template>
   <div>
-    <div v-if="loading" class="flex justify-center py-12">
+    <!-- Product not found -->
+    <div v-if="productNotFound" class="text-center py-12">
+      <div class="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-600">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Product not found</h2>
+      <p class="text-gray-500 mb-4">The product "{{ urlSlug }}" does not exist.</p>
+      <NuxtLink to="/dashboard" class="text-primary-600 hover:underline">
+        Go to Dashboard
+      </NuxtLink>
+    </div>
+
+    <div v-else-if="loading" class="flex justify-center py-12">
       <UiSpinner size="lg" />
     </div>
 
     <div v-else-if="!request" class="text-center py-12">
-      <p class="text-gray-500">Feature request not found</p>
-      <NuxtLink :to="`/products/${productId}`" class="text-primary-600 hover:underline">
-        Back to Product
+      <div class="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Feature request not found</h2>
+      <p class="text-gray-500 mb-4">This feature request doesn't exist or has been deleted.</p>
+      <NuxtLink :to="`/${product?.slug}/feature-requests`" class="text-primary-600 hover:underline">
+        Back to Feature Requests
       </NuxtLink>
     </div>
 
     <div v-else>
       <!-- Header -->
       <div class="mb-6">
-        <NuxtLink :to="`/products/${productId}`" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
+        <NuxtLink :to="`/${product?.slug}/feature-requests`" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
           &larr; Back to Feature Requests
         </NuxtLink>
       </div>

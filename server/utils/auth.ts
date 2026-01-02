@@ -1,6 +1,7 @@
 import { H3Event } from 'h3'
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '../db'
+import { generateSlug } from './slug'
 
 export async function requireAuth(event: H3Event) {
   const auth = event.context.auth()
@@ -38,9 +39,11 @@ export async function getOrCreateUser(event: H3Event) {
   }).returning()
 
   // Auto-create a default product for new users
+  const productName = 'My Product'
   await db.insert(schema.products).values({
     userId: newUser.id,
-    name: 'My Product',
+    name: productName,
+    slug: generateSlug(productName),
     description: 'Feature requests for my product',
   })
 

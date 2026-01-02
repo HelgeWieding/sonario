@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { DashboardStats, ProductWithStats } from '~~/shared/types'
+import type { DashboardStats } from '~~/shared/types'
 
 definePageMeta({
   middleware: 'auth',
 })
 
-const { products, fetchProducts } = useProducts()
+const { product, fetchProduct } = useProduct()
 const statsLoading = ref(true)
 const stats = ref<DashboardStats | null>(null)
-const product = ref<ProductWithStats | null>(null)
 
 async function fetchStats() {
   try {
@@ -21,20 +20,8 @@ async function fetchStats() {
   }
 }
 
-async function fetchProduct() {
-  if (products.value.length > 0) {
-    try {
-      const { data } = await $fetch<{ data: ProductWithStats }>(`/api/products/${products.value[0].id}`)
-      product.value = data
-    } catch {
-      product.value = null
-    }
-  }
-}
-
 onMounted(async () => {
-  await Promise.all([fetchProducts(), fetchStats()])
-  await fetchProduct()
+  await Promise.all([fetchProduct(), fetchStats()])
 })
 </script>
 
@@ -70,7 +57,7 @@ onMounted(async () => {
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <NuxtLink to="/requests">
+        <NuxtLink v-if="product" :to="`/${product.slug}/feature-requests`">
           <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-blue-100 rounded-lg">

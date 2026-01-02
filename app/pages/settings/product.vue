@@ -3,7 +3,7 @@ definePageMeta({
   middleware: 'auth',
 })
 
-const { products, fetchProducts, updateProduct } = useProducts()
+const { product, fetchProduct, updateProduct } = useProduct()
 
 const productName = ref('')
 const autoDraftsEnabled = ref(false)
@@ -11,22 +11,28 @@ const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 
-onMounted(async () => {
-  await fetchProducts()
-  if (products.value.length > 0) {
-    productName.value = products.value[0].name
-    autoDraftsEnabled.value = products.value[0].autoDraftsEnabled ?? false
+// Update form when product loads
+watch(product, (newProduct) => {
+  if (newProduct) {
+    productName.value = newProduct.name
+    autoDraftsEnabled.value = newProduct.autoDraftsEnabled ?? false
+    loading.value = false
   }
-  loading.value = false
+}, { immediate: true })
+
+onMounted(async () => {
+  if (!product.value) {
+    await fetchProduct()
+  }
 })
 
 async function handleSave() {
-  if (!products.value[0] || !productName.value.trim()) return
+  if (!product.value || !productName.value.trim()) return
 
   saving.value = true
   saved.value = false
 
-  const success = await updateProduct(products.value[0].id, {
+  const success = await updateProduct({
     name: productName.value.trim(),
     autoDraftsEnabled: autoDraftsEnabled.value,
   })

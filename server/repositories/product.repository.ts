@@ -5,12 +5,14 @@ import type { Product, ProductWithStats } from '~~/shared/types'
 export interface CreateProductData {
   userId: string
   name: string
+  slug: string
   description?: string | null
   emailFilter?: string | null
 }
 
 export interface UpdateProductData {
   name?: string
+  slug?: string
   description?: string | null
   emailFilter?: string | null
   autoDraftsEnabled?: boolean
@@ -45,17 +47,98 @@ class ProductRepository {
   }
 
   /**
+   * Find the user's first (and only) product with stats
+   */
+  async findFirstWithStats(userId: string): Promise<ProductWithStats | null> {
+    const product = await this.db.query.products.findFirst({
+      where: eq(schema.products.userId, userId),
+      orderBy: (products, { asc }) => [asc(products.createdAt)],
+    })
+
+    if (!product) {
+      return null
+    }
+
+    const [{ count: featureRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(eq(schema.featureRequests.productId, product.id))
+
+    const [{ count: newRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(
+        and(
+          eq(schema.featureRequests.productId, product.id),
+          eq(schema.featureRequests.status, 'new')
+        )
+      )
+
+    return {
+      ...product,
+      featureRequestCount: Number(featureRequestCount),
+      newRequestCount: Number(newRequestCount),
+    }
+  }
+
+  /**
    * Create a new product
    */
   async create(data: CreateProductData): Promise<Product> {
     const [product] = await this.db.insert(schema.products).values({
       userId: data.userId,
       name: data.name,
+      slug: data.slug,
       description: data.description ?? null,
       emailFilter: data.emailFilter ?? null,
     }).returning()
 
     return product
+  }
+
+  /**
+   * Find a product by slug and user ID
+   */
+  async findBySlug(slug: string, userId: string): Promise<Product | null> {
+    const product = await this.db.query.products.findFirst({
+      where: and(
+        eq(schema.products.slug, slug),
+        eq(schema.products.userId, userId)
+      ),
+    })
+    return product ?? null
+  }
+
+  /**
+   * Find a product by slug with stats
+   */
+  async findBySlugWithStats(slug: string, userId: string): Promise<ProductWithStats | null> {
+    const product = await this.findBySlug(slug, userId)
+
+    if (!product) {
+      return null
+    }
+
+    const [{ count: featureRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(eq(schema.featureRequests.productId, product.id))
+
+    const [{ count: newRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(
+        and(
+          eq(schema.featureRequests.productId, product.id),
+          eq(schema.featureRequests.status, 'new')
+        )
+      )
+
+    return {
+      ...product,
+      featureRequestCount: Number(featureRequestCount),
+      newRequestCount: Number(newRequestCount),
+    }
   }
 
   /**
@@ -114,6 +197,34 @@ class ProductRepository {
           eq(schema.products.userId, userId)
         )
       )
+      .returning()
+
+    return product ?? null
+  }
+
+  /**
+   * Update the user's first (and only) product
+   * Returns null if no product found
+   */
+  async updateFirst(userId: string, data: UpdateProductData): Promise<Product | null> {
+    // First find the product
+    const existing = await this.db.query.products.findFirst({
+      where: eq(schema.products.userId, userId),
+      orderBy: (products, { asc }) => [asc(products.createdAt)],
+    })
+
+    if (!existing) {
+      return null
+    }
+
+    // Update it
+    const [product] = await this.db
+      .update(schema.products)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.products.id, existing.id))
       .returning()
 
     return product ?? null

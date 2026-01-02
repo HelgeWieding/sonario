@@ -1,28 +1,44 @@
 <script setup lang="ts">
 const route = useRoute()
+const { product, fetchProduct } = useProduct()
 
 // Persist collapsed state
 const isCollapsed = useState('sidebar-collapsed', () => false)
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: 'home' },
-  { name: 'Feature Requests', href: '/requests', icon: 'inbox' },
-  { name: 'Messages', href: '/messages', icon: 'envelope' },
-  { name: 'Contacts', href: '/contacts', icon: 'users' },
-  { name: 'Feedback', href: '/feedback', icon: 'chat' },
-  {
-    name: 'Settings',
-    href: '/settings',
-    icon: 'settings',
-    children: [
-      { name: 'General', href: '/settings' },
-      { name: 'Product', href: '/settings/product' },
-      { name: 'Gmail', href: '/settings/gmail' },
-      { name: 'Help Scout', href: '/settings/helpscout' },
-      { name: 'Profile', href: '/settings/profile' },
-    ]
-  },
-]
+// Fetch product on mount if not already loaded
+onMounted(async () => {
+  if (!product.value) {
+    await fetchProduct()
+  }
+})
+
+const navigation = computed(() => {
+  const slug = product.value?.slug
+
+  const productRoutes = slug ? [
+    { name: 'Feature Requests', href: `/${slug}/feature-requests`, icon: 'inbox' },
+    { name: 'Messages', href: `/${slug}/messages`, icon: 'envelope' },
+    { name: 'Contacts', href: `/${slug}/contacts`, icon: 'users' },
+    { name: 'Feedback', href: `/${slug}/feedback`, icon: 'chat' },
+  ] : []
+
+  return [
+    { name: 'Dashboard', href: '/dashboard', icon: 'home' },
+    ...productRoutes,
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: 'settings',
+      children: [
+        { name: 'General', href: '/settings' },
+        { name: 'Product', href: '/settings/product' },
+        { name: 'Gmail', href: '/settings/gmail' },
+        { name: 'Help Scout', href: '/settings/helpscout' },
+        { name: 'Profile', href: '/settings/profile' },
+      ]
+    },
+  ]
+})
 
 // Track which sections are expanded
 const expandedSections = useState<string[]>('sidebar-expanded', () => ['Settings'])
@@ -34,7 +50,7 @@ function isActive(href: string) {
   return route.path.startsWith(href)
 }
 
-function isSectionActive(item: typeof navigation[0]) {
+function isSectionActive(item: typeof navigation.value[0]) {
   if (item.children) {
     return item.children.some(child => route.path === child.href || route.path.startsWith(child.href + '/'))
   }

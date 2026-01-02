@@ -4,7 +4,7 @@ import { STATUS_LABELS, CATEGORY_LABELS } from '~~/shared/constants'
 
 interface Props {
   requests: FeatureRequest[]
-  productId: string
+  productSlug: string
 }
 
 defineProps<Props>()
@@ -30,7 +30,7 @@ function getStatusVariant(status: string) {
       :key="request.id"
       class="block"
     >
-      <NuxtLink :to="`/products/${productId}/requests/${request.id}`">
+      <NuxtLink :to="`/${productSlug}/feature-requests/${request.id}`">
         <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">

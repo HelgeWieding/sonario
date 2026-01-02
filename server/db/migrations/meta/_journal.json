@@ -29,6 +29,13 @@
       "when": 1767118866006,
       "tag": "0003_wakeful_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767378549591,
+      "tag": "0004_add-product-slug",
+      "breakpoints": true
     }
   ]
 }

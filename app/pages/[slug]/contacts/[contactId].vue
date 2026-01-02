@@ -5,6 +5,14 @@ definePageMeta({
   middleware: 'auth',
 })
 
+const route = useRoute()
+const urlSlug = computed(() => route.params.slug as string)
+const contactId = route.params.contactId as string
+
+// Get user's product and redirect if slug doesn't match
+const { product, fetchProduct } = useProduct()
+const productNotFound = ref(false)
+
 interface FeedbackItem {
   id: string
   content: string
@@ -28,9 +36,6 @@ interface ContactWithFeedback {
   updatedAt: string
   feedback: FeedbackItem[]
 }
-
-const route = useRoute()
-const contactId = route.params.contactId as string
 
 const loading = ref(true)
 const contact = ref<ContactWithFeedback | null>(null)
@@ -65,22 +70,56 @@ function getSentimentColor(sentiment: string) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchProduct()
+
+  if (!product.value) {
+    productNotFound.value = true
+    loading.value = false
+    return
+  }
+
+  // Redirect to correct slug if URL doesn't match
+  if (urlSlug.value !== product.value.slug) {
+    navigateTo(`/${product.value.slug}/contacts/${contactId}`, { replace: true })
+    return
+  }
+
   loadContact()
 })
 </script>
 
 <template>
   <div>
+    <!-- Product not found -->
+    <div v-if="productNotFound" class="text-center py-12">
+      <div class="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-600">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Product not found</h2>
+      <p class="text-gray-500 mb-4">The product "{{ urlSlug }}" does not exist.</p>
+      <NuxtLink to="/dashboard" class="text-primary-600 hover:underline">
+        Go to Dashboard
+      </NuxtLink>
+    </div>
+
     <!-- Loading -->
-    <div v-if="loading" class="flex justify-center py-12">
+    <div v-else-if="loading" class="flex justify-center py-12">
       <UiSpinner size="lg" />
     </div>
 
     <!-- Not found -->
     <div v-else-if="!contact" class="text-center py-12">
-      <p class="text-gray-500">Contact not found</p>
-      <NuxtLink to="/contacts" class="text-blue-600 hover:underline">
+      <div class="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+      </div>
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">Contact not found</h2>
+      <p class="text-gray-500 mb-4">This contact doesn't exist or has been deleted.</p>
+      <NuxtLink :to="`/${product?.slug}/contacts`" class="text-primary-600 hover:underline">
         Back to Contacts
       </NuxtLink>
     </div>
@@ -89,7 +128,7 @@ onMounted(() => {
     <div v-else>
       <!-- Header -->
       <div class="mb-6">
-        <NuxtLink to="/contacts" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
+        <NuxtLink :to="`/${product?.slug}/contacts`" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
           &larr; Back to Contacts
         </NuxtLink>
         <h1 class="text-2xl font-bold text-gray-900">
@@ -121,7 +160,7 @@ onMounted(() => {
           <!-- Feature request link -->
           <div v-if="fb.featureRequest" class="mb-3">
             <NuxtLink
-              :to="`/products/${fb.featureRequest.productId}/requests/${fb.featureRequest.id}`"
+              :to="`/${product?.slug}/feature-requests/${fb.featureRequest.id}`"
               class="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
               {{ fb.featureRequest.title }}

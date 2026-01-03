@@ -3,16 +3,14 @@ import type { FeatureRequestWithFeedback } from '~~/shared/types'
 import { STATUS_LABELS, CATEGORY_LABELS, STATUSES, CATEGORIES } from '~~/shared/constants'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'product-slug'],
 })
 
 const route = useRoute()
-const urlSlug = computed(() => route.params.slug as string)
 const requestId = route.params.requestId as string
 
-// Get user's product and redirect if slug doesn't match
-const { product, fetchProduct } = useProduct()
-const productNotFound = ref(false)
+// Product is guaranteed to exist by middleware
+const { product } = useProduct()
 
 const { getRequest, updateRequest, deleteRequest } = useFeatureRequests()
 const { addFeedback, deleteFeedback } = useFeedback()
@@ -68,42 +66,14 @@ async function handleDeleteFeedback(feedbackId: string) {
   }
 }
 
-onMounted(async () => {
-  await fetchProduct()
-
-  if (!product.value) {
-    productNotFound.value = true
-    loading.value = false
-    return
-  }
-
-  // Redirect to correct slug if URL doesn't match
-  if (urlSlug.value !== product.value.slug) {
-    navigateTo(`/${product.value.slug}/feature-requests/${requestId}`, { replace: true })
-    return
-  }
-
+onMounted(() => {
   loadRequest()
 })
 </script>
 
 <template>
   <div>
-    <!-- Product not found -->
-    <div v-if="productNotFound" class="text-center py-12">
-      <div class="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-600">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-        </svg>
-      </div>
-      <h2 class="text-lg font-semibold text-gray-900 mb-2">Product not found</h2>
-      <p class="text-gray-500 mb-4">The product "{{ urlSlug }}" does not exist.</p>
-      <NuxtLink to="/dashboard" class="text-primary-600 hover:underline">
-        Go to Dashboard
-      </NuxtLink>
-    </div>
-
-    <div v-else-if="loading" class="flex justify-center py-12">
+    <div v-if="loading" class="flex justify-center py-12">
       <UiSpinner size="lg" />
     </div>
 

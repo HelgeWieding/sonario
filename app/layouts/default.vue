@@ -10,9 +10,9 @@ watch(isSignedIn, (signedIn) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <LayoutAppHeader />
-    <div class="flex">
+  <LayoutAppHeader />
+  <div class="min-h-screen w-full bg-gray-50">
+    <div class="flex flex-1">
       <LayoutAppSidebar />
       <main class="flex-1 p-6">
         <slot />

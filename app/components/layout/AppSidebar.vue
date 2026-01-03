@@ -1,14 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
-const { product, fetchProduct } = useProduct()
+const { product, fetchFirstProduct } = useProduct()
 
 // Persist collapsed state
 const isCollapsed = useState('sidebar-collapsed', () => false)
 
-// Fetch product on mount if not already loaded
+// Fetch product on mount if not already loaded (fallback, middleware handles this)
 onMounted(async () => {
   if (!product.value) {
-    await fetchProduct()
+    await fetchFirstProduct()
   }
 })
 

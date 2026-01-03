@@ -4,15 +4,11 @@ import type { FeatureRequest } from '~~/shared/types'
 import { SENTIMENT_LABELS, SENTIMENTS } from '~~/shared/constants/enums'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'product-slug'],
 })
 
-const route = useRoute()
-const urlSlug = computed(() => route.params.slug as string)
-
-// Get user's product and redirect if slug doesn't match
-const { product, fetchProduct } = useProduct()
-const productNotFound = ref(false)
+// Product is guaranteed to exist by middleware
+const { product } = useProduct()
 
 interface FeedbackWithRelations extends Feedback {
   featureRequest?: { id: string; title: string } | null
@@ -183,21 +179,7 @@ async function handleCreateFeedback() {
   }
 }
 
-onMounted(async () => {
-  await fetchProduct()
-
-  if (!product.value) {
-    productNotFound.value = true
-    loading.value = false
-    return
-  }
-
-  // Redirect to correct slug if URL doesn't match
-  if (urlSlug.value !== product.value.slug) {
-    navigateTo(`/${product.value.slug}/feedback`, { replace: true })
-    return
-  }
-
+onMounted(() => {
   loadFeedback()
 })
 
@@ -209,28 +191,13 @@ watch([sentimentFilter], () => {
 
 <template>
   <div>
-    <!-- Product not found -->
-    <div v-if="productNotFound" class="text-center py-12">
-      <div class="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-600">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-        </svg>
-      </div>
-      <h2 class="text-lg font-semibold text-gray-900 mb-2">Product not found</h2>
-      <p class="text-gray-500 mb-4">The product "{{ urlSlug }}" does not exist.</p>
-      <NuxtLink to="/dashboard" class="text-primary-600 hover:underline">
-        Go to Dashboard
-      </NuxtLink>
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Feedback</h1>
+      <p class="text-gray-500 mt-1">All feedback collected from various sources</p>
     </div>
 
-    <template v-else>
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Feedback</h1>
-        <p class="text-gray-500 mt-1">All feedback collected from various sources</p>
-      </div>
-
-      <!-- Filters -->
+    <!-- Filters -->
     <div class="flex flex-wrap gap-4 mb-6">
       <div class="w-48 flex-shrink-0">
         <UiSelect
@@ -391,72 +358,71 @@ watch([sentimentFilter], () => {
           </button>
         </div>
       </div>
-      </template>
-
-      <!-- Add Feedback Modal -->
-      <UiModal :open="showAddDialog" title="Add Feedback" @close="closeAddDialog">
-        <form @submit.prevent="handleCreateFeedback" class="space-y-4">
-          <!-- Content -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Feedback Content</label>
-            <textarea
-              v-model="newFeedback.content"
-              rows="4"
-              placeholder="Enter the feedback..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <!-- Sentiment -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sentiment</label>
-            <UiSelect
-              v-model="newFeedback.sentiment"
-              :options="formSentimentOptions"
-            />
-          </div>
-
-          <!-- Feature Request Link -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Link to Feature Request</label>
-            <UiSelect
-              v-model="newFeedback.featureRequestId"
-              :options="featureRequestOptions"
-              :disabled="loadingRequests"
-              placeholder="Select a feature request (optional)"
-            />
-            <p class="text-xs text-gray-500 mt-1">Optionally link this feedback to an existing feature request</p>
-          </div>
-
-          <!-- Sender Info -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
-              <UiInput
-                v-model="newFeedback.senderName"
-                placeholder="Optional"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Sender Email</label>
-              <UiInput
-                v-model="newFeedback.senderEmail"
-                type="email"
-                placeholder="Optional"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-2 pt-4">
-            <UiButton type="button" variant="secondary" @click="closeAddDialog">
-              Cancel
-            </UiButton>
-            <UiButton type="submit" :loading="creating" :disabled="!isFormValid">
-              Add Feedback
-            </UiButton>
-          </div>
-        </form>
-      </UiModal>
     </template>
+
+    <!-- Add Feedback Modal -->
+    <UiModal :open="showAddDialog" title="Add Feedback" @close="closeAddDialog">
+      <form @submit.prevent="handleCreateFeedback" class="space-y-4">
+        <!-- Content -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Feedback Content</label>
+          <textarea
+            v-model="newFeedback.content"
+            rows="4"
+            placeholder="Enter the feedback..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Sentiment -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sentiment</label>
+          <UiSelect
+            v-model="newFeedback.sentiment"
+            :options="formSentimentOptions"
+          />
+        </div>
+
+        <!-- Feature Request Link -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Link to Feature Request</label>
+          <UiSelect
+            v-model="newFeedback.featureRequestId"
+            :options="featureRequestOptions"
+            :disabled="loadingRequests"
+            placeholder="Select a feature request (optional)"
+          />
+          <p class="text-xs text-gray-500 mt-1">Optionally link this feedback to an existing feature request</p>
+        </div>
+
+        <!-- Sender Info -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
+            <UiInput
+              v-model="newFeedback.senderName"
+              placeholder="Optional"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Email</label>
+            <UiInput
+              v-model="newFeedback.senderEmail"
+              type="email"
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeAddDialog">
+            Cancel
+          </UiButton>
+          <UiButton type="submit" :loading="creating" :disabled="!isFormValid">
+            Add Feedback
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
   </div>
 </template>

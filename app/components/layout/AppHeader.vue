@@ -4,7 +4,7 @@ const { product } = useProduct()
 </script>
 
 <template>
-  <header class="bg-white border-b border-gray-200">
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
     <div class="px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-600">

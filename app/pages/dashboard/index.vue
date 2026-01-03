@@ -2,10 +2,11 @@
 import type { DashboardStats } from '~~/shared/types'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'product'],
 })
 
-const { product, fetchProduct } = useProduct()
+// Product is guaranteed to exist by middleware
+const { product } = useProduct()
 const statsLoading = ref(true)
 const stats = ref<DashboardStats | null>(null)
 
@@ -20,8 +21,8 @@ async function fetchStats() {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([fetchProduct(), fetchStats()])
+onMounted(() => {
+  fetchStats()
 })
 </script>
 

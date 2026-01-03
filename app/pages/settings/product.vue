@@ -1,13 +1,12 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'product'],
 })
 
-const { product, fetchProduct, updateProduct } = useProduct()
+const { product, updateProduct } = useProduct()
 
 const productName = ref('')
 const autoDraftsEnabled = ref(false)
-const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 
@@ -16,15 +15,8 @@ watch(product, (newProduct) => {
   if (newProduct) {
     productName.value = newProduct.name
     autoDraftsEnabled.value = newProduct.autoDraftsEnabled ?? false
-    loading.value = false
   }
 }, { immediate: true })
-
-onMounted(async () => {
-  if (!product.value) {
-    await fetchProduct()
-  }
-})
 
 async function handleSave() {
   if (!product.value || !productName.value.trim()) return
@@ -52,11 +44,7 @@ async function handleSave() {
   <div class="max-w-2xl">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">Product Settings</h1>
 
-    <div v-if="loading" class="flex justify-center py-12">
-      <UiSpinner size="lg" />
-    </div>
-
-    <div v-else class="space-y-6">
+    <div class="space-y-6">
       <UiCard>
         <h2 class="font-semibold text-gray-900 mb-4">Product Name</h2>
         <p class="text-sm text-gray-500 mb-4">

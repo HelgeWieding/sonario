@@ -2,10 +2,6 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-12-01',
 
-  future: {
-    compatibilityVersion: 4,
-  },
-
   devtools: { enabled: true },
 
   modules: [
@@ -18,7 +14,7 @@ export default defineNuxtConfig({
     signInUrl: '/sign-in',
     signUpUrl: '/sign-up',
     signInFallbackRedirectUrl: '/dashboard',
-    signUpFallbackRedirectUrl: '/dashboard',
+    signUpFallbackRedirectUrl: '/onboarding',
   },
 
   // Runtime configuration

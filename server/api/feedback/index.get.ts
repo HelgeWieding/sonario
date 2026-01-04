@@ -1,22 +1,20 @@
-import { getOrCreateUser } from '../../utils/auth'
-import { productRepository } from '../../repositories/product.repository'
+import { getOrCreateUser, getAccessibleProductIds } from '../../utils/auth'
 import { feedbackRepository } from '../../repositories/feedback.repository'
 import type { Sentiment } from '~~/shared/constants/enums'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
 
-  // Get user's products
-  const products = await productRepository.findAllByUserId(user.id)
+  // Get all accessible products (owned + org-shared)
+  const productIds = await getAccessibleProductIds(event, user.id)
 
-  if (products.length === 0) {
+  if (productIds.length === 0) {
     return {
       data: [],
       pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
     }
   }
 
-  const productIds = products.map(p => p.id)
   const query = getQuery(event)
 
   const sentiment = query.sentiment as Sentiment | undefined

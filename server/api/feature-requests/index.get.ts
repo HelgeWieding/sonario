@@ -1,5 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
-import { productRepository } from '../../repositories/product.repository'
+import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
 import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { badRequest } from '../../utils/errors'
 import type { Category, Status } from '~~/shared/constants/enums'
@@ -16,9 +15,9 @@ export default defineEventHandler(async (event) => {
     badRequest('productId is required')
   }
 
-  // Verify user owns this product
-  const ownsProduct = await productRepository.verifyOwnership(productId, user.id)
-  if (!ownsProduct) {
+  // Verify user has access to this product (owner or org member)
+  const hasAccess = await hasProductAccess(event, productId, user.id)
+  if (!hasAccess) {
     badRequest('Product not found')
   }
 

@@ -1,6 +1,14 @@
-import { H3Event } from 'h3'
+import type { H3Event } from 'h3'
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '../db'
+
+// Re-export organization utilities
+export {
+  getAuthContext,
+  hasProductAccess,
+  getAccessibleProductIds,
+  getOrganizationMemberUserIds,
+} from './organization'
 
 export async function requireAuth(event: H3Event) {
   const auth = event.context.auth()

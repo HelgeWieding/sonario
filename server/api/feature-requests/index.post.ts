@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { getOrCreateUser } from '../../utils/auth'
-import { productRepository } from '../../repositories/product.repository'
+import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
 import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { badRequest, handleDbError } from '../../utils/errors'
 import { CATEGORIES } from '~~/shared/constants'
@@ -22,9 +21,9 @@ export default defineEventHandler(async (event) => {
     badRequest(result.error.errors[0]?.message || 'Invalid input')
   }
 
-  // Verify user owns this product
-  const ownsProduct = await productRepository.verifyOwnership(result.data!.productId, user.id)
-  if (!ownsProduct) {
+  // Verify user has access to this product (owner or org member)
+  const hasAccess = await hasProductAccess(event, result.data!.productId, user.id)
+  if (!hasAccess) {
     badRequest('Product not found')
   }
 

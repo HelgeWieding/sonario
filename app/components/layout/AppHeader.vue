@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { user } = useUser()
 const { product } = useProduct()
+const { orgData, hasMemberships, currentOrgName, isOrgContext } = useOrganizationManagement()
 </script>
 
 <template>
@@ -10,6 +11,17 @@ const { product } = useProduct()
         <NuxtLink to="/dashboard" class="text-xl font-bold text-primary-600">
           Sonario
         </NuxtLink>
+
+        <!-- Only show org switcher when org data is loaded (SSR) -->
+        <div v-if="orgData" class="ml-2">
+          <OrganizationSwitcher
+            :hide-personal="false"
+            :after-create-organization-url="'/settings/team'"
+            :after-select-organization-url="'/dashboard'"
+            :after-select-personal-url="'/dashboard'"
+          />
+        </div>
+
         <template v-if="product">
           <span class="text-gray-300">/</span>
           <span class="text-gray-700 font-medium">{{ product.name }}</span>

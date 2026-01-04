@@ -1,5 +1,9 @@
 <script setup lang="ts">
 const { isSignedIn } = useAuth()
+const { fetchOrganizationData } = useOrganizationManagement()
+
+// Fetch organization data server-side
+await fetchOrganizationData()
 
 // Redirect to sign-in if not authenticated
 watch(isSignedIn, (signedIn) => {

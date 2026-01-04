@@ -1,4 +1,4 @@
-import { eq, and, count } from 'drizzle-orm'
+import { eq, and, count, inArray } from 'drizzle-orm'
 import { getDb, schema } from '../db'
 import type { Product, ProductWithStats } from '~~/shared/types'
 
@@ -107,6 +107,42 @@ class ProductRepository {
       ),
     })
     return product ?? null
+  }
+
+  /**
+   * Find a product by slug (without user filter)
+   * Used for org-aware access where access is checked separately
+   */
+  async findBySlugOnly(slug: string): Promise<Product | null> {
+    const product = await this.db.query.products.findFirst({
+      where: eq(schema.products.slug, slug),
+    })
+    return product ?? null
+  }
+
+  /**
+   * Get stats for a product (used after access verification)
+   */
+  async getProductStats(productId: string): Promise<{ featureRequestCount: number; newRequestCount: number }> {
+    const [{ count: featureRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(eq(schema.featureRequests.productId, productId))
+
+    const [{ count: newRequestCount }] = await this.db
+      .select({ count: count() })
+      .from(schema.featureRequests)
+      .where(
+        and(
+          eq(schema.featureRequests.productId, productId),
+          eq(schema.featureRequests.status, 'new')
+        )
+      )
+
+    return {
+      featureRequestCount: Number(featureRequestCount),
+      newRequestCount: Number(newRequestCount),
+    }
   }
 
   /**
@@ -242,6 +278,69 @@ class ProductRepository {
           eq(schema.products.id, id),
           eq(schema.products.userId, userId)
         )
+      )
+      .returning()
+
+    return product ?? null
+  }
+
+  /**
+   * Find all products by an array of IDs
+   */
+  async findAllByIds(productIds: string[]): Promise<Product[]> {
+    if (productIds.length === 0) return []
+
+    return await this.db.query.products.findMany({
+      where: inArray(schema.products.id, productIds),
+      orderBy: (products, { asc }) => [asc(products.createdAt)],
+    })
+  }
+
+  /**
+   * Assign a product to an organization
+   * Only the product owner can do this
+   */
+  async assignToOrganization(
+    productId: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<Product | null> {
+    const [product] = await this.db
+      .update(schema.products)
+      .set({
+        organizationId,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.products.id, productId),
+          eq(schema.products.userId, userId),
+        ),
+      )
+      .returning()
+
+    return product ?? null
+  }
+
+  /**
+   * Remove a product from its organization
+   * Only the product owner can do this
+   */
+  async removeFromOrganization(
+    productId: string,
+    userId: string,
+  ): Promise<Product | null> {
+    const [product] = await this.db
+      .update(schema.products)
+      .set({
+        organizationId: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.products.id, productId),
+          eq(schema.products.userId, userId),
+        ),
       )
       .returning()
 

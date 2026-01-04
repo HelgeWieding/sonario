@@ -1,5 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
-import { productRepository } from '../../repositories/product.repository'
+import { getOrCreateUser, getAccessibleProductIds, hasProductAccess } from '../../utils/auth'
 import { contactRepository } from '../../repositories/contact.repository'
 
 export default defineEventHandler(async (event) => {
@@ -11,18 +10,25 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const productId = query.productId as string | undefined
 
-  // Get user's products
-  const userProducts = await productRepository.findAllByUserId(user.id)
+  let productIds: string[]
 
-  const productIds = productId
-    ? [productId]
-    : userProducts.map(p => p.id)
+  if (productId) {
+    // Verify access to specific product
+    const hasAccess = await hasProductAccess(event, productId, user.id)
+    if (!hasAccess) {
+      return { data: [] }
+    }
+    productIds = [productId]
+  } else {
+    // Get all accessible products (owned + org-shared)
+    productIds = await getAccessibleProductIds(event, user.id)
+  }
 
   if (productIds.length === 0) {
     return { data: [] }
   }
 
-  // Get all contacts for the user's products with feedback count
+  // Get all contacts for the accessible products with feedback count
   const contacts = await contactRepository.findAllByProductIds(productIds)
 
   return { data: contacts }

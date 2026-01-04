@@ -11,7 +11,7 @@ interface Props {
   disabled?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Select an option',
   disabled: false,
 })
@@ -29,7 +29,12 @@ const emit = defineEmits<{
     @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
   >
     <option value="" disabled>{{ placeholder }}</option>
-    <option v-for="option in options" :key="option.value" :value="option.value">
+    <option
+      v-for="option in options"
+      :key="option.value"
+      :value="option.value"
+      :selected="option.value === modelValue"
+    >
       {{ option.label }}
     </option>
   </select>

@@ -1,4 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
+import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
 import { feedbackRepository } from '../../repositories/feedback.repository'
 import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { notFound, handleDbError } from '../../utils/errors'
@@ -11,10 +11,16 @@ export default defineEventHandler(async (event) => {
     notFound('Feedback not found')
   }
 
-  // Get feedback with feature request and product to verify ownership
+  // Get feedback with feature request and product to verify access
   const feedbackItem = await feedbackRepository.findByIdWithRelations(id)
 
-  if (!feedbackItem || !feedbackItem.featureRequest || feedbackItem.featureRequest.product.userId !== user.id) {
+  if (!feedbackItem || !feedbackItem.featureRequest) {
+    notFound('Feedback not found')
+  }
+
+  // Verify user has access to the product (owner or org member)
+  const hasAccess = await hasProductAccess(event, feedbackItem.featureRequest.product.id, user.id)
+  if (!hasAccess) {
     notFound('Feedback not found')
   }
 

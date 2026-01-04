@@ -13,6 +13,13 @@ definePageMeta({
         <h2 class="font-semibold text-gray-900 mb-4">Quick Links</h2>
         <div class="space-y-2">
           <NuxtLink
+            to="/settings/team"
+            class="block p-3 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <div class="font-medium text-gray-900">Team</div>
+            <div class="text-sm text-gray-500">Invite team members and manage your organization</div>
+          </NuxtLink>
+          <NuxtLink
             to="/settings/product"
             class="block p-3 rounded-lg hover:bg-gray-50 transition-colors"
           >

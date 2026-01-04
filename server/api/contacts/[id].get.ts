@@ -1,5 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
-import { productRepository } from '../../repositories/product.repository'
+import { getOrCreateUser, getAccessibleProductIds } from '../../utils/auth'
 import { contactRepository } from '../../repositories/contact.repository'
 import { notFound } from '../../utils/errors'
 
@@ -15,11 +14,10 @@ export default defineEventHandler(async (event) => {
     notFound('Contact not found')
   }
 
-  // Get user's products to verify ownership
-  const userProducts = await productRepository.findAllByUserId(user.id)
-  const productIds = userProducts.map(p => p.id)
+  // Get all accessible products (owned + org-shared)
+  const productIds = await getAccessibleProductIds(event, user.id)
 
-  // Verify contact belongs to user's product
+  // Verify contact belongs to an accessible product
   const contactExists = await contactRepository.findByIdWithinProducts(contactId, productIds)
   if (!contactExists) {
     notFound('Contact not found')

@@ -1,4 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
+import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
 import { featureRequestRepository } from '../../repositories/feature-request.repository'
 import { notFound, handleDbError } from '../../utils/errors'
 
@@ -10,9 +10,15 @@ export default defineEventHandler(async (event) => {
     notFound('Feature request not found')
   }
 
-  // Get the feature request to verify ownership
+  // Get the feature request to verify access
   const existing = await featureRequestRepository.findByIdWithProduct(id)
-  if (!existing || existing.product.userId !== user.id) {
+  if (!existing) {
+    notFound('Feature request not found')
+  }
+
+  // Verify user has access to the product (owner or org member)
+  const hasAccess = await hasProductAccess(event, existing.product.id, user.id)
+  if (!hasAccess) {
     notFound('Feature request not found')
   }
 

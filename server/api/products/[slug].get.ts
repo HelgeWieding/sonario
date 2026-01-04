@@ -1,4 +1,4 @@
-import { getOrCreateUser } from '../../utils/auth'
+import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
 import { productRepository } from '../../repositories/product.repository'
 import { notFound } from '../../utils/errors'
 
@@ -10,11 +10,26 @@ export default defineEventHandler(async (event) => {
     notFound('Product not found')
   }
 
-  const product = await productRepository.findBySlugWithStats(slug, user.id)
+  // Find product by slug (without user filter)
+  const product = await productRepository.findBySlugOnly(slug)
 
   if (!product) {
     notFound('Product not found')
   }
 
-  return { data: product }
+  // Verify user has access to this product (owner or org member)
+  const hasAccess = await hasProductAccess(event, product.id, user.id)
+  if (!hasAccess) {
+    notFound('Product not found')
+  }
+
+  // Get stats for the product
+  const stats = await productRepository.getProductStats(product.id)
+
+  return {
+    data: {
+      ...product,
+      ...stats,
+    },
+  }
 })

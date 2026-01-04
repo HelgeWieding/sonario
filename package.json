@@ -11,8 +11,6 @@
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:push:prod": "drizzle-kit push --force",
     "db:studio": "drizzle-kit studio",
     "db:studio:prod": "drizzle-kit studio"
   },

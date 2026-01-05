@@ -1,12 +1,12 @@
-import { getOrCreateUser, getAccessibleProductIds } from '../../utils/auth'
+import { getOrCreateUser, getContextProductIds } from '../../utils/auth'
 import { feedbackRepository } from '../../repositories/feedback.repository'
 import type { Sentiment } from '~~/shared/constants/enums'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
 
-  // Get all accessible products (owned + org-shared)
-  const productIds = await getAccessibleProductIds(event, user.id)
+  // Get products for current context (org or personal)
+  const productIds = await getContextProductIds(event, user.id)
 
   if (productIds.length === 0) {
     return {

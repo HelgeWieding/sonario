@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { user } = useUser()
-const { product } = useProduct()
+const { selectedProduct, hasMultipleProducts, products, selectProduct } = useProducts()
 const { orgData, hasMemberships, currentOrgName, isOrgContext } = useOrganizationManagement()
 </script>
 
@@ -16,15 +16,24 @@ const { orgData, hasMemberships, currentOrgName, isOrgContext } = useOrganizatio
         <div v-if="orgData" class="ml-2">
           <OrganizationSwitcher
             :hide-personal="false"
-            :after-create-organization-url="'/settings/team'"
+            :after-create-organization-url="'/onboarding/organization-check'"
             :after-select-organization-url="'/dashboard'"
             :after-select-personal-url="'/dashboard'"
           />
         </div>
 
-        <template v-if="product">
+        <template v-if="selectedProduct">
           <span class="text-gray-300">/</span>
-          <span class="text-gray-700 font-medium">{{ product.name }}</span>
+          <template v-if="hasMultipleProducts">
+            <ProductSelector
+              :products="products"
+              :selected="selectedProduct"
+              @select="selectProduct"
+            />
+          </template>
+          <template v-else>
+            <span class="text-gray-700 font-medium">{{ selectedProduct.name }}</span>
+          </template>
         </template>
       </div>
 

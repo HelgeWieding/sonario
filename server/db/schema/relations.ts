@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm'
 import { users } from './users'
+import { organizations } from './organizations'
 import { products } from './products'
 import { featureRequests } from './feature-requests'
 import { contacts } from './contacts'
@@ -11,10 +12,18 @@ export const usersRelations = relations(users, ({ many }) => ({
   products: many(products),
 }))
 
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  products: many(products),
+}))
+
 export const productsRelations = relations(products, ({ one, many }) => ({
   user: one(users, {
     fields: [products.userId],
     references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [products.organizationId],
+    references: [organizations.clerkId],
   }),
   featureRequests: many(featureRequests),
   feedback: many(feedback),

@@ -1,4 +1,4 @@
-import { getOrCreateUser, getAccessibleProductIds } from '../../utils/auth'
+import { getOrCreateUser, getContextProductIds } from '../../utils/auth'
 import { contactRepository } from '../../repositories/contact.repository'
 import { notFound } from '../../utils/errors'
 
@@ -14,8 +14,8 @@ export default defineEventHandler(async (event) => {
     notFound('Contact not found')
   }
 
-  // Get all accessible products (owned + org-shared)
-  const productIds = await getAccessibleProductIds(event, user.id)
+  // Get products for current context (org or personal)
+  const productIds = await getContextProductIds(event, user.id)
 
   // Verify contact belongs to an accessible product
   const contactExists = await contactRepository.findByIdWithinProducts(contactId, productIds)

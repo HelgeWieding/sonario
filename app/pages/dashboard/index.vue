@@ -5,8 +5,9 @@ definePageMeta({
   middleware: ['auth', 'product'],
 })
 
-// Product is guaranteed to exist by middleware
-const { product } = useProduct()
+// Use the products composable for multi-product support
+const { products, selectedProduct, hasMultipleProducts, selectProduct } = useProducts()
+
 const statsLoading = ref(true)
 const stats = ref<DashboardStats | null>(null)
 
@@ -28,7 +29,19 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+
+      <!-- Product Selector (shown when multiple products exist) -->
+      <div v-if="hasMultipleProducts" class="flex items-center gap-2">
+        <span class="text-sm text-gray-500">Product:</span>
+        <ProductSelector
+          :products="products"
+          :selected="selectedProduct"
+          @select="selectProduct"
+        />
+      </div>
+    </div>
 
     <!-- Stats -->
     <div v-if="statsLoading" class="grid gap-4 md:grid-cols-3 mb-8">
@@ -58,7 +71,7 @@ onMounted(() => {
     <div class="mb-8">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <NuxtLink v-if="product" :to="`/${product.slug}/feature-requests`">
+        <NuxtLink v-if="selectedProduct" :to="`/${selectedProduct.slug}/feature-requests`">
           <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-blue-100 rounded-lg">
@@ -68,7 +81,7 @@ onMounted(() => {
               </div>
               <div>
                 <div class="font-medium text-gray-900">View Feature Requests</div>
-                <div class="text-sm text-gray-500">{{ product?.featureRequestCount || 0 }} total requests</div>
+                <div class="text-sm text-gray-500">{{ selectedProduct?.featureRequestCount || 0 }} total requests</div>
               </div>
             </div>
           </UiCard>

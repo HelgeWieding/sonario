@@ -43,6 +43,13 @@
       "when": 1767557021148,
       "tag": "0005_abnormal_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767647403634,
+      "tag": "0006_spicy_gamma_corps",
+      "breakpoints": true
     }
   ]
 }

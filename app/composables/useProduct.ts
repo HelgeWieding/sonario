@@ -17,19 +17,16 @@ export function useProduct() {
   async function fetchFirstProduct() {
     const headers = getRequestHeaders()
 
-    const { data, error: fetchError } = await useAsyncData(
-      'first-product',
-      () => $fetch<{ data: ProductWithStats }>('/api/products', { headers })
-    )
-
-    if (fetchError.value) {
-      error.value = fetchError.value.data?.message || 'Failed to fetch product'
-      errorStatus.value = fetchError.value.statusCode || null
-      product.value = null
-    } else if (data.value) {
-      product.value = data.value.data
+    try {
+      // Use $fetch directly to always get fresh data with current auth context
+      const response = await $fetch<{ data: ProductWithStats }>('/api/products', { headers })
+      product.value = response.data
       error.value = null
       errorStatus.value = null
+    } catch (e: any) {
+      error.value = e.data?.message || 'Failed to fetch product'
+      errorStatus.value = e.statusCode || null
+      product.value = null
     }
   }
 
@@ -37,23 +34,24 @@ export function useProduct() {
   async function fetchProductBySlug(slug: string) {
     const headers = getRequestHeaders()
 
-    const { data, error: fetchError } = await useAsyncData(
-      `product-${slug}`,
-      () => $fetch<{ data: ProductWithStats }>(`/api/products/${slug}`, { headers })
-    )
-
-    if (fetchError.value) {
-      error.value = fetchError.value.data?.message || 'Product not found'
-      errorStatus.value = fetchError.value.statusCode || null
-      product.value = null
-    } else if (data.value) {
-      product.value = data.value.data
+    try {
+      // Use $fetch directly to always get fresh data with current auth context
+      const response = await $fetch<{ data: ProductWithStats }>(`/api/products/${slug}`, { headers })
+      product.value = response.data
       error.value = null
       errorStatus.value = null
+    } catch (e: any) {
+      error.value = e.data?.message || 'Product not found'
+      errorStatus.value = e.statusCode || null
+      product.value = null
     }
   }
 
-  async function createProduct(input: { name: string; description?: string }): Promise<Product | null> {
+  async function createProduct(input: {
+    name: string
+    description?: string
+    organizationId?: string
+  }): Promise<Product | null> {
     error.value = null
 
     try {

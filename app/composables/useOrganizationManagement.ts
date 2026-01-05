@@ -31,17 +31,14 @@ export function useOrganizationManagement() {
   async function fetchOrganizationData() {
     const headers = getRequestHeaders()
 
-    const { data, error: fetchError } = await useAsyncData(
-      'organization-current',
-      () => $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers }),
-    )
-
-    if (fetchError.value) {
-      error.value = fetchError.value.data?.message || 'Failed to fetch organization'
-      orgData.value = null
-    } else if (data.value) {
-      orgData.value = data.value.data
+    try {
+      // Use $fetch directly to always get fresh data with current auth context
+      const response = await $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers })
+      orgData.value = response.data
       error.value = null
+    } catch (e: any) {
+      error.value = e.data?.message || 'Failed to fetch organization'
+      orgData.value = null
     }
   }
 

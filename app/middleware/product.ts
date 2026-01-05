@@ -1,20 +1,27 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { product, errorStatus, fetchFirstProduct } = useProduct()
+  const { products, errorStatus, fetchProducts } = useProducts()
+  const { orgId } = useAuth()
 
-  await fetchFirstProduct()
+  await fetchProducts()
 
   // Redirect to sign-in if not authenticated
   if (errorStatus.value === 401) {
     return navigateTo('/sign-in')
   }
 
-  // Redirect to onboarding if no product (except on onboarding page itself)
-  if (!product.value && to.path !== '/onboarding') {
-    return navigateTo('/onboarding')
+  // Skip redirect if already on an onboarding page
+  if (to.path.startsWith('/onboarding')) {
+    return
   }
 
-  // Redirect to dashboard if user already has a product and is on onboarding
-  if (product.value && to.path === '/onboarding') {
-    return navigateTo('/dashboard')
+  // No products in current context - redirect to appropriate onboarding
+  if (products.value.length === 0) {
+    if (orgId.value) {
+      // Organization context but no org products
+      return navigateTo(`/onboarding/organization?orgId=${orgId.value}`)
+    } else {
+      // Personal context but no personal products
+      return navigateTo('/onboarding')
+    }
   }
 })

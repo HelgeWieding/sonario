@@ -24,7 +24,7 @@ const { orgData, isOrgContext, currentOrgName } = useOrganizationManagement()
           All team members will have full access to your products.
         </p>
         <CreateOrganization
-          :after-create-organization-url="'/settings/team'"
+          :after-create-organization-url="'/onboarding/organization-check'"
         />
       </UiCard>
 

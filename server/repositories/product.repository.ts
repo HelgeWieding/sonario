@@ -1,9 +1,10 @@
-import { eq, and, count, inArray } from 'drizzle-orm'
+import { eq, and, count, inArray, isNull } from 'drizzle-orm'
 import { getDb, schema } from '../db'
 import type { Product, ProductWithStats } from '~~/shared/types'
 
 export interface CreateProductData {
   userId: string
+  organizationId?: string | null
   name: string
   slug: string
   description?: string | null
@@ -87,6 +88,7 @@ class ProductRepository {
   async create(data: CreateProductData): Promise<Product> {
     const [product] = await this.db.insert(schema.products).values({
       userId: data.userId,
+      organizationId: data.organizationId ?? null,
       name: data.name,
       slug: data.slug,
       description: data.description ?? null,
@@ -345,6 +347,40 @@ class ProductRepository {
       .returning()
 
     return product ?? null
+  }
+
+  /**
+   * Find all products belonging to an organization
+   */
+  async findAllByOrganizationId(organizationId: string): Promise<Product[]> {
+    return await this.db.query.products.findMany({
+      where: eq(schema.products.organizationId, organizationId),
+      orderBy: (products, { asc }) => [asc(products.createdAt)],
+    })
+  }
+
+  /**
+   * Find user's personal products (those without an organization)
+   */
+  async findPersonalByUserId(userId: string): Promise<Product[]> {
+    return await this.db.query.products.findMany({
+      where: and(
+        eq(schema.products.userId, userId),
+        isNull(schema.products.organizationId),
+      ),
+      orderBy: (products, { asc }) => [asc(products.createdAt)],
+    })
+  }
+
+  /**
+   * Check if an organization has any products
+   */
+  async organizationHasProducts(organizationId: string): Promise<boolean> {
+    const product = await this.db.query.products.findFirst({
+      where: eq(schema.products.organizationId, organizationId),
+      columns: { id: true },
+    })
+    return !!product
   }
 }
 

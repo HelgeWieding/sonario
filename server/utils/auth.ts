@@ -6,7 +6,9 @@ import { getDb, schema } from '../db'
 export {
   getAuthContext,
   hasProductAccess,
+  hasProductOwnership,
   getAccessibleProductIds,
+  getContextProductIds,
   getOrganizationMemberUserIds,
 } from './organization'
 

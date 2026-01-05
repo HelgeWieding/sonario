@@ -1,4 +1,5 @@
 export * from './users'
+export * from './organizations'
 export * from './products'
 export * from './feature-requests'
 export * from './contacts'

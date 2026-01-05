@@ -1,24 +1,16 @@
-import { eq, count, and, gte } from 'drizzle-orm'
+import { eq, count, and, gte, inArray } from 'drizzle-orm'
 import { getDb, schema } from '../../db'
 import { getOrCreateUser } from '../../utils/auth'
+import { getContextProductIds } from '../../utils/organization'
 import type { DashboardStats } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)
   const db = getDb()
 
-  // Get total products
-  const [{ count: totalProducts }] = await db
-    .select({ count: count() })
-    .from(schema.products)
-    .where(eq(schema.products.userId, user.id))
-
-  // Get user's product IDs
-  const products = await db.query.products.findMany({
-    where: eq(schema.products.userId, user.id),
-    columns: { id: true },
-  })
-  const productIds = products.map(p => p.id)
+  // Get product IDs for current context (org or personal)
+  const productIds = await getContextProductIds(event, user.id)
+  const totalProducts = productIds.length
 
   let totalFeatureRequests = 0
   let newRequestsThisWeek = 0

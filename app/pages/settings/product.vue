@@ -3,7 +3,8 @@ definePageMeta({
   middleware: ['auth', 'product'],
 })
 
-const { product, updateProduct, fetchFirstProduct } = useProduct()
+const { selectedProduct: product, refreshProducts } = useProducts()
+const { updateProduct } = useProduct()
 const { orgData, memberships, hasMemberships } = useOrganizationManagement()
 
 const productName = ref('')
@@ -116,8 +117,8 @@ async function confirmSharingChange() {
       body: { organizationId: orgIdForApi },
     })
 
-    // Refresh product data to get updated organizationId
-    await fetchFirstProduct()
+    // Refresh products data to get updated organizationId
+    await refreshProducts()
   } catch (error: any) {
     console.error('Failed to update team sharing:', error)
   } finally {

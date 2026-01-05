@@ -1,4 +1,4 @@
-import { eq, and, ne } from 'drizzle-orm'
+import { eq, and, ne, isNull } from 'drizzle-orm'
 import { getDb, schema } from '../db'
 
 const RESERVED_SLUGS = ['dashboard', 'settings', 'sign-in', 'sign-up', 'auth', 'api']
@@ -24,12 +24,15 @@ export function generateSlug(name: string): string {
 }
 
 /**
- * Generates a unique slug for a user.
+ * Generates a unique slug within a context (personal or organization).
+ * For personal products: unique within user's personal products (no org)
+ * For org products: unique within the organization
  * Appends a numeric suffix if the base slug already exists.
  */
 export async function generateUniqueSlug(
   name: string,
   userId: string,
+  organizationId?: string | null,
   excludeProductId?: string
 ): Promise<string> {
   const db = getDb()
@@ -39,10 +42,16 @@ export async function generateUniqueSlug(
   let suffix = 2
 
   while (true) {
-    const conditions = [
-      eq(schema.products.slug, slug),
-      eq(schema.products.userId, userId),
-    ]
+    const conditions = [eq(schema.products.slug, slug)]
+
+    if (organizationId) {
+      // For org products, slug must be unique within the organization
+      conditions.push(eq(schema.products.organizationId, organizationId))
+    } else {
+      // For personal products, slug must be unique within user's personal products
+      conditions.push(eq(schema.products.userId, userId))
+      conditions.push(isNull(schema.products.organizationId))
+    }
 
     if (excludeProductId) {
       conditions.push(ne(schema.products.id, excludeProductId))

@@ -1,19 +1,12 @@
 <script setup lang="ts">
 const route = useRoute()
-const { product, fetchFirstProduct } = useProduct()
+const { selectedProduct } = useProducts()
 
 // Persist collapsed state
 const isCollapsed = useState('sidebar-collapsed', () => false)
 
-// Fetch product on mount if not already loaded (fallback, middleware handles this)
-onMounted(async () => {
-  if (!product.value) {
-    await fetchFirstProduct()
-  }
-})
-
 const navigation = computed(() => {
-  const slug = product.value?.slug
+  const slug = selectedProduct.value?.slug
 
   const productRoutes = slug ? [
     { name: 'Feature Requests', href: `/${slug}/feature-requests`, icon: 'inbox' },

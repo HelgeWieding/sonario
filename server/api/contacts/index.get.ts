@@ -1,4 +1,4 @@
-import { getOrCreateUser, getAccessibleProductIds, hasProductAccess } from '../../utils/auth'
+import { getOrCreateUser, getContextProductIds, hasProductAccess } from '../../utils/auth'
 import { contactRepository } from '../../repositories/contact.repository'
 
 export default defineEventHandler(async (event) => {
@@ -13,15 +13,15 @@ export default defineEventHandler(async (event) => {
   let productIds: string[]
 
   if (productId) {
-    // Verify access to specific product
+    // Verify access to specific product in current context
     const hasAccess = await hasProductAccess(event, productId, user.id)
     if (!hasAccess) {
       return { data: [] }
     }
     productIds = [productId]
   } else {
-    // Get all accessible products (owned + org-shared)
-    productIds = await getAccessibleProductIds(event, user.id)
+    // Get products for current context (org or personal)
+    productIds = await getContextProductIds(event, user.id)
   }
 
   if (productIds.length === 0) {

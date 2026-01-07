@@ -1,33 +1,38 @@
 <script setup lang="ts">
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
-// Product is guaranteed to exist by middleware
-const { product } = useProduct()
+const route = useRoute();
+const { fetchProductServer } = useProduct();
+
+const { data: product } = await fetchProductServer(route.params.slug as string);
 
 interface ContactWithStats {
-  id: string
-  email: string
-  name: string | null
-  createdAt: string
-  updatedAt: string
-  feedbackCount: number
-  lastFeedbackAt: string | null
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: string;
+  updatedAt: string;
+  feedbackCount: number;
+  lastFeedbackAt: string | null;
 }
 
-const loading = ref(true)
-const contacts = ref<ContactWithStats[]>([])
+const loading = ref(true);
+const contacts = ref<ContactWithStats[]>([]);
 
 async function loadContacts() {
-  loading.value = true
+  if (!product.value) return;
+  loading.value = true;
   try {
-    const { data } = await $fetch<{ data: ContactWithStats[] }>('/api/contacts')
-    contacts.value = data
+    const { data } = await $fetch<{ data: ContactWithStats[] }>(
+      `/api/${route.params.slug}/contacts`
+    );
+    contacts.value = data;
   } catch (error) {
-    console.error('Failed to load contacts:', error)
+    console.error("Failed to load contacts:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 

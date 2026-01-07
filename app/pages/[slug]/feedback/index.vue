@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { Feedback } from '~~/server/db/schema/feedback'
-import type { FeatureRequest } from '~~/shared/types'
-import { SENTIMENT_LABELS, SENTIMENTS } from '~~/shared/constants/enums'
+import type { Feedback } from "~~/server/db/schema/feedback";
+import type { FeatureRequest } from "~~/shared/types";
+import { SENTIMENT_LABELS, SENTIMENTS } from "~~/shared/constants/enums";
 
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
-// Product is guaranteed to exist by middleware
-const { product } = useProduct()
+const route = useRoute();
+const { fetchProductServer } = useProduct();
+
+const { data: product } = await fetchProductServer(route.params.slug as string);
 
 interface FeedbackWithRelations extends Feedback {
   featureRequest?: { id: string; title: string } | null
@@ -22,7 +24,7 @@ interface Pagination {
   totalPages: number
 }
 
-const { addFeedback } = useFeedback()
+// Removed useFeedback - using direct $fetch with slug-based API
 
 const loading = ref(true)
 const feedbackList = ref<FeedbackWithRelations[]>([])
@@ -67,36 +69,42 @@ const featureRequestOptions = computed(() => [
 
 async function loadFeatureRequests() {
   if (!product.value) {
-    featureRequests.value = []
-    return
+    featureRequests.value = [];
+    return;
   }
-  loadingRequests.value = true
+  loadingRequests.value = true;
   try {
-    const { data } = await $fetch<{ data: FeatureRequest[] }>(`/api/feature-requests?productId=${product.value.id}`)
-    featureRequests.value = data
+    const { data } = await $fetch<{ data: FeatureRequest[] }>(
+      `/api/${route.params.slug}/feature-requests?productId=${product.value.id}`
+    );
+    featureRequests.value = data;
   } catch (error) {
-    console.error('Failed to load feature requests:', error)
-    featureRequests.value = []
+    console.error("Failed to load feature requests:", error);
+    featureRequests.value = [];
   } finally {
-    loadingRequests.value = false
+    loadingRequests.value = false;
   }
 }
 
 async function loadFeedback(page = 1) {
-  loading.value = true
+  if (!product.value) return;
+  loading.value = true;
   try {
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('limit', '20')
-    if (sentimentFilter.value) params.set('sentiment', sentimentFilter.value)
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", "20");
+    if (sentimentFilter.value) params.set("sentiment", sentimentFilter.value);
 
-    const response = await $fetch<{ data: FeedbackWithRelations[]; pagination: Pagination }>(`/api/feedback?${params}`)
-    feedbackList.value = response.data
-    pagination.value = response.pagination
+    const response = await $fetch<{
+      data: FeedbackWithRelations[];
+      pagination: Pagination;
+    }>(`/api/${route.params.slug}/feedback?${params}`);
+    feedbackList.value = response.data;
+    pagination.value = response.pagination;
   } catch (error) {
-    console.error('Failed to load feedback:', error)
+    console.error("Failed to load feedback:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
@@ -160,22 +168,26 @@ function closeAddDialog() {
 }
 
 async function handleCreateFeedback() {
-  if (!isFormValid.value || !product.value) return
+  if (!isFormValid.value || !product.value) return;
 
-  creating.value = true
-  const result = await addFeedback({
-    productId: product.value.id,
-    featureRequestId: newFeedback.value.featureRequestId || undefined,
-    content: newFeedback.value.content.trim(),
-    sentiment: newFeedback.value.sentiment,
-    senderEmail: newFeedback.value.senderEmail.trim() || undefined,
-    senderName: newFeedback.value.senderName.trim() || undefined,
-  })
-  creating.value = false
-
-  if (result) {
-    closeAddDialog()
-    await loadFeedback(1)
+  creating.value = true;
+  try {
+    await $fetch(`/api/${route.params.slug}/feedback`, {
+      method: "POST",
+      body: {
+        featureRequestId: newFeedback.value.featureRequestId || undefined,
+        content: newFeedback.value.content.trim(),
+        sentiment: newFeedback.value.sentiment,
+        senderEmail: newFeedback.value.senderEmail.trim() || undefined,
+        senderName: newFeedback.value.senderName.trim() || undefined,
+      },
+    });
+    closeAddDialog();
+    await loadFeedback(1);
+  } catch (error) {
+    console.error("Failed to create feedback:", error);
+  } finally {
+    creating.value = false;
   }
 }
 

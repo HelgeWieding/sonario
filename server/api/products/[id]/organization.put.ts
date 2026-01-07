@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { getOrCreateUser, getAuthContext } from '../../../utils/auth'
+import { getOrCreateUser } from '../../../utils/auth'
+import { getAuthContext } from '../../../utils/organization'
 import { productRepository } from '../../../repositories/product.repository'
 import { badRequest, notFound } from '../../../utils/errors'
 

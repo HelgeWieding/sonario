@@ -1,10 +1,8 @@
-import { clerkClient } from '@clerk/nuxt/server'
-import { getOrCreateUser } from '../../utils/auth'
-import { getAuthContext } from '../../utils/organization'
+import { clerkClient } from "@clerk/nuxt/server";
+import { getAuthContext } from "../../utils/organization";
 
 export default defineEventHandler(async (event) => {
-  const user = await getOrCreateUser(event)
-  const auth = getAuthContext(event)
+  const auth = getAuthContext(event);
 
   // If no active organization, return null
   if (!auth.orgId) {
@@ -14,22 +12,23 @@ export default defineEventHandler(async (event) => {
         role: null,
         memberships: [],
       },
-    }
+    };
   }
 
   try {
-    const client = clerkClient(event)
+    const client = clerkClient(event);
 
     // Get the active organization details
     const organization = await client.organizations.getOrganization({
       organizationId: auth.orgId,
-    })
+    });
 
     // Get user's memberships to list available orgs
-    const { data: memberships } = await client.users.getOrganizationMembershipList({
-      userId: auth.userId,
-      limit: 20,
-    })
+    const { data: memberships } =
+      await client.users.getOrganizationMembershipList({
+        userId: auth.userId,
+        limit: 20,
+      });
 
     return {
       data: {
@@ -40,7 +39,7 @@ export default defineEventHandler(async (event) => {
           imageUrl: organization.imageUrl,
         },
         role: auth.orgRole,
-        memberships: memberships.map(m => ({
+        memberships: memberships.map((m) => ({
           id: m.organization.id,
           name: m.organization.name,
           slug: m.organization.slug,
@@ -48,16 +47,16 @@ export default defineEventHandler(async (event) => {
           role: m.role,
         })),
       },
-    }
+    };
   } catch (error: any) {
     // If organizations aren't enabled or there's an error, return empty
-    console.error('Failed to fetch organization:', error.message)
+    console.error("Failed to fetch organization:", error.message);
     return {
       data: {
         organization: null,
         role: null,
         memberships: [],
       },
-    }
+    };
   }
-})
+});

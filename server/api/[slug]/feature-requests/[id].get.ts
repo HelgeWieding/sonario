@@ -1,6 +1,7 @@
-import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
-import { featureRequestRepository } from '../../repositories/feature-request.repository'
-import { notFound } from '../../utils/errors'
+import { getOrCreateUser } from '../../../utils/auth'
+import { hasProductAccess } from '../../../utils/organization'
+import { featureRequestRepository } from '../../../repositories/feature-request.repository'
+import { notFound } from '../../../utils/errors'
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event)

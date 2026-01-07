@@ -31,15 +31,9 @@ export function useOrganizationManagement() {
   async function fetchOrganizationData() {
     const headers = getRequestHeaders()
 
-    try {
-      // Use $fetch directly to always get fresh data with current auth context
-      const response = await $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers })
-      orgData.value = response.data
-      error.value = null
-    } catch (e: any) {
-      error.value = e.data?.message || 'Failed to fetch organization'
-      orgData.value = null
-    }
+    return useAsyncData('organization-current', () =>
+      $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers })
+    )
   }
 
   // Computed properties for easy access

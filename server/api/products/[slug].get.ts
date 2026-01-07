@@ -1,4 +1,5 @@
-import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
+import { getOrCreateUser } from '../../utils/auth'
+import { hasProductAccess } from '../../utils/organization'
 import { productRepository } from '../../repositories/product.repository'
 import { notFound } from '../../utils/errors'
 

@@ -1,74 +1,74 @@
 <script setup lang="ts">
-import type { FeatureRequestWithFeedback } from '~~/shared/types'
-import { STATUS_LABELS, CATEGORY_LABELS, STATUSES, CATEGORIES } from '~~/shared/constants'
+import type { FeatureRequestWithFeedback } from "~~/shared/types";
+import { STATUS_LABELS, CATEGORY_LABELS, STATUSES } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
-const route = useRoute()
-const requestId = route.params.requestId as string
+const route = useRoute();
+const requestId = route.params.requestId as string;
 
 // Product is guaranteed to exist by middleware
-const { product } = useProduct()
+const { product } = useProduct();
 
-const { getRequest, updateRequest, deleteRequest } = useFeatureRequests()
-const { addFeedback, deleteFeedback } = useFeedback()
-const router = useRouter()
+const { getRequest, updateRequest, deleteRequest } = useFeatureRequests();
+const { addFeedback, deleteFeedback } = useFeedback();
+const router = useRouter();
 
-const request = ref<FeatureRequestWithFeedback | null>(null)
-const loading = ref(true)
-const updating = ref(false)
-const showDeleteModal = ref(false)
+const request = ref<FeatureRequestWithFeedback | null>(null);
+const loading = ref(true);
+const updating = ref(false);
+const showDeleteModal = ref(false);
 
-const newFeedback = ref('')
-const addingFeedback = ref(false)
+const newFeedback = ref("");
+const addingFeedback = ref(false);
 
 async function loadRequest() {
-  loading.value = true
-  request.value = await getRequest(requestId)
-  loading.value = false
+  loading.value = true;
+  request.value = await getRequest(requestId);
+  loading.value = false;
 }
 
 async function handleStatusChange(status: string) {
-  if (!request.value) return
-  updating.value = true
-  await updateRequest(requestId, { status: status as any })
-  await loadRequest()
-  updating.value = false
+  if (!request.value) return;
+  updating.value = true;
+  await updateRequest(requestId, { status: status as any });
+  await loadRequest();
+  updating.value = false;
 }
 
 async function handleDelete() {
-  const success = await deleteRequest(requestId)
+  const success = await deleteRequest(requestId);
   if (success) {
-    router.push(`/${product.value?.slug}/feature-requests`)
+    router.push(`/${product.value?.slug}/feature-requests`);
   }
 }
 
 async function handleAddFeedback() {
-  if (!newFeedback.value.trim()) return
-  addingFeedback.value = true
+  if (!newFeedback.value.trim()) return;
+  addingFeedback.value = true;
   const feedback = await addFeedback({
     featureRequestId: requestId,
     content: newFeedback.value,
-  })
+  });
   if (feedback) {
-    newFeedback.value = ''
-    await loadRequest()
+    newFeedback.value = "";
+    await loadRequest();
   }
-  addingFeedback.value = false
+  addingFeedback.value = false;
 }
 
 async function handleDeleteFeedback(feedbackId: string) {
-  const success = await deleteFeedback(feedbackId)
+  const success = await deleteFeedback(feedbackId);
   if (success) {
-    await loadRequest()
+    await loadRequest();
   }
 }
 
 onMounted(() => {
-  loadRequest()
-})
+  loadRequest();
+});
 </script>
 
 <template>
@@ -78,14 +78,34 @@ onMounted(() => {
     </div>
 
     <div v-else-if="!request" class="text-center py-12">
-      <div class="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-400">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+      <div
+        class="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6 text-gray-400"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+          />
         </svg>
       </div>
-      <h2 class="text-lg font-semibold text-gray-900 mb-2">Feature request not found</h2>
-      <p class="text-gray-500 mb-4">This feature request doesn't exist or has been deleted.</p>
-      <NuxtLink :to="`/${product?.slug}/feature-requests`" class="text-primary-600 hover:underline">
+      <h2 class="text-lg font-semibold text-gray-900 mb-2">
+        Feature request not found
+      </h2>
+      <p class="text-gray-500 mb-4">
+        This feature request doesn't exist or has been deleted.
+      </p>
+      <NuxtLink
+        :to="`/${product?.slug}/feature-requests`"
+        class="text-primary-600 hover:underline"
+      >
         Back to Feature Requests
       </NuxtLink>
     </div>
@@ -93,7 +113,10 @@ onMounted(() => {
     <div v-else>
       <!-- Header -->
       <div class="mb-6">
-        <NuxtLink :to="`/${product?.slug}/feature-requests`" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
+        <NuxtLink
+          :to="`/${product?.slug}/feature-requests`"
+          class="text-sm text-gray-500 hover:text-gray-700 mb-1 block"
+        >
           &larr; Back to Feature Requests
         </NuxtLink>
       </div>
@@ -104,23 +127,38 @@ onMounted(() => {
           <UiCard>
             <div class="flex items-start justify-between mb-4">
               <div>
-                <h1 class="text-xl font-bold text-gray-900">{{ request.title }}</h1>
+                <h1 class="text-xl font-bold text-gray-900">
+                  {{ request.title }}
+                </h1>
                 <div class="flex items-center gap-2 mt-2">
                   <UiBadge>{{ CATEGORY_LABELS[request.category] }}</UiBadge>
-                  <span v-if="request.aiGenerated" class="text-sm text-primary-600">AI Generated</span>
+                  <span
+                    v-if="request.aiGenerated"
+                    class="text-sm text-primary-600"
+                    >AI Generated</span
+                  >
                 </div>
               </div>
-              <UiButton variant="ghost" size="sm" @click="showDeleteModal = true">Delete</UiButton>
+              <UiButton
+                variant="ghost"
+                size="sm"
+                @click="showDeleteModal = true"
+                >Delete</UiButton
+              >
             </div>
 
             <div class="prose max-w-none">
-              <p class="text-gray-700 whitespace-pre-wrap">{{ request.description }}</p>
+              <p class="text-gray-700 whitespace-pre-wrap">
+                {{ request.description }}
+              </p>
             </div>
 
             <div class="mt-6 pt-6 border-t border-gray-200">
               <p class="text-sm text-gray-500">
                 Created {{ new Date(request.createdAt).toLocaleDateString() }}
-                <span v-if="request.sourceEmailId" class="ml-2">from email</span>
+                <span v-if="request.sourceEmailId" class="ml-2"
+                  >from email</span
+                >
               </p>
             </div>
           </UiCard>
@@ -140,7 +178,11 @@ onMounted(() => {
                 placeholder="Add feedback..."
               />
               <div class="mt-2 flex justify-end">
-                <UiButton size="sm" :loading="addingFeedback" @click="handleAddFeedback">
+                <UiButton
+                  size="sm"
+                  :loading="addingFeedback"
+                  @click="handleAddFeedback"
+                >
                   Add Feedback
                 </UiButton>
               </div>
@@ -152,20 +194,38 @@ onMounted(() => {
                 <div class="flex items-start justify-between">
                   <div class="flex-1">
                     <p class="text-gray-700">{{ fb.content }}</p>
-                    <div class="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                      <span v-if="fb.senderEmail">{{ fb.senderName || fb.senderEmail }}</span>
-                      <span>{{ new Date(fb.createdAt).toLocaleDateString() }}</span>
+                    <div
+                      class="mt-2 flex items-center gap-2 text-sm text-gray-500"
+                    >
+                      <span v-if="fb.senderEmail">{{
+                        fb.senderName || fb.senderEmail
+                      }}</span>
+                      <span>{{
+                        new Date(fb.createdAt).toLocaleDateString()
+                      }}</span>
                       <UiBadge
                         v-if="fb.sentiment"
                         size="sm"
-                        :variant="fb.sentiment === 'positive' ? 'success' : fb.sentiment === 'negative' ? 'error' : 'default'"
+                        :variant="
+                          fb.sentiment === 'positive'
+                            ? 'success'
+                            : fb.sentiment === 'negative'
+                            ? 'error'
+                            : 'default'
+                        "
                       >
                         {{ fb.sentiment }}
                       </UiBadge>
-                      <UiBadge v-if="fb.aiExtracted" size="sm">AI Extracted</UiBadge>
+                      <UiBadge v-if="fb.aiExtracted" size="sm"
+                        >AI Extracted</UiBadge
+                      >
                     </div>
                   </div>
-                  <UiButton variant="ghost" size="sm" @click="handleDeleteFeedback(fb.id)">
+                  <UiButton
+                    variant="ghost"
+                    size="sm"
+                    @click="handleDeleteFeedback(fb.id)"
+                  >
                     Remove
                   </UiButton>
                 </div>
@@ -182,7 +242,9 @@ onMounted(() => {
               :value="request.status"
               class="input"
               :disabled="updating"
-              @change="handleStatusChange(($event.target as HTMLSelectElement).value)"
+              @change="
+                handleStatusChange(($event.target as HTMLSelectElement).value)
+              "
             >
               <option v-for="status in STATUSES" :key="status" :value="status">
                 {{ STATUS_LABELS[status] }}
@@ -198,7 +260,9 @@ onMounted(() => {
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-500">Category</span>
-                  <span class="font-medium">{{ CATEGORY_LABELS[request.category] }}</span>
+                  <span class="font-medium">{{
+                    CATEGORY_LABELS[request.category]
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -208,11 +272,20 @@ onMounted(() => {
     </div>
 
     <!-- Delete Modal -->
-    <UiModal :open="showDeleteModal" title="Delete Feature Request" @close="showDeleteModal = false">
-      <p class="text-gray-600">Are you sure you want to delete this feature request? This action cannot be undone.</p>
+    <UiModal
+      :open="showDeleteModal"
+      title="Delete Feature Request"
+      @close="showDeleteModal = false"
+    >
+      <p class="text-gray-600">
+        Are you sure you want to delete this feature request? This action cannot
+        be undone.
+      </p>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UiButton variant="secondary" @click="showDeleteModal = false">Cancel</UiButton>
+          <UiButton variant="secondary" @click="showDeleteModal = false"
+            >Cancel</UiButton
+          >
           <UiButton variant="danger" @click="handleDelete">Delete</UiButton>
         </div>
       </template>

@@ -1,4 +1,5 @@
-import { getOrCreateUser, getContextProductIds } from '../../utils/auth'
+import { getOrCreateUser } from '../../utils/auth'
+import { getContextProductIds } from '../../utils/organization'
 import { productRepository } from '../../repositories/product.repository'
 import { notFound } from '../../utils/errors'
 

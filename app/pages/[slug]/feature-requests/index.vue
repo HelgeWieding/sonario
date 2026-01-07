@@ -1,82 +1,103 @@
 <script setup lang="ts">
-import { STATUSES, STATUS_LABELS, CATEGORIES, CATEGORY_LABELS } from '~~/shared/constants'
+import {
+  STATUSES,
+  STATUS_LABELS,
+  CATEGORIES,
+  CATEGORY_LABELS,
+} from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
 // Product is guaranteed to exist by middleware
-const { product, fetchProductBySlug } = useProduct()
-const { requests, loading: requestsLoading, fetchRequests, createRequest } = useFeatureRequests()
+const route = useRoute();
+const { fetchProductServer } = useProduct();
 
-const statusFilter = ref('')
-const categoryFilter = ref('')
+const {
+  data: product,
+  error,
+  status,
+} = await fetchProductServer(route.params.slug as string);
+
+const {
+  requests,
+  loading: requestsLoading,
+  fetchRequests,
+  createRequest,
+} = useFeatureRequests();
+
+const statusFilter = ref("");
+const categoryFilter = ref("");
 
 // Add feature request dialog state
-const showAddDialog = ref(false)
-const creating = ref(false)
+const showAddDialog = ref(false);
+const creating = ref(false);
 const newRequest = ref({
-  title: '',
-  description: '',
-  category: 'feature' as typeof CATEGORIES[number],
-})
+  title: "",
+  description: "",
+  category: "feature" as (typeof CATEGORIES)[number],
+});
 
-const isFormValid = computed(() =>
-  newRequest.value.title.trim() && newRequest.value.description.trim()
-)
+const isFormValid = computed(
+  () => newRequest.value.title.trim() && newRequest.value.description.trim()
+);
 
 const statusOptions = [
-  { value: '', label: 'All Statuses' },
-  ...STATUSES.map(s => ({ value: s, label: STATUS_LABELS[s] })),
-]
+  { value: "", label: "All Statuses" },
+  ...STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
+];
 
 const categoryOptions = [
-  { value: '', label: 'All Categories' },
-  ...CATEGORIES.map(c => ({ value: c, label: CATEGORY_LABELS[c] })),
-]
+  { value: "", label: "All Categories" },
+  ...CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABELS[c] })),
+];
 
 // Category options for form (without "All" option)
-const formCategoryOptions = CATEGORIES.map(c => ({ value: c, label: CATEGORY_LABELS[c] }))
+const formCategoryOptions = CATEGORIES.map((c) => ({
+  value: c,
+  label: CATEGORY_LABELS[c],
+}));
 
 async function loadRequests() {
-  if (!product.value) return
+  if (!product.value) return;
+  console.log("product.value", product.value);
   await fetchRequests({
     productId: product.value.id,
-    status: statusFilter.value as any || undefined,
-    category: categoryFilter.value as any || undefined,
-  })
+    status: (statusFilter.value as any) || undefined,
+    category: (categoryFilter.value as any) || undefined,
+  });
 }
 
 onMounted(() => {
-  loadRequests()
-})
+  loadRequests();
+});
 
 watch([statusFilter, categoryFilter], () => {
-  loadRequests()
-})
+  loadRequests();
+});
 
 async function handleCreateRequest() {
-  if (!isFormValid.value || !product.value) return
+  if (!isFormValid.value || !product.value) return;
 
-  creating.value = true
+  creating.value = true;
   const result = await createRequest({
     productId: product.value.id,
     title: newRequest.value.title.trim(),
     description: newRequest.value.description.trim(),
     category: newRequest.value.category,
-  })
-  creating.value = false
+  });
+  creating.value = false;
 
   if (result) {
-    closeAddDialog()
-    await loadRequests()
-    await fetchProductBySlug(product.value!.slug) // Refresh the count
+    closeAddDialog();
+    await loadRequests();
   }
 }
 
 function closeAddDialog() {
-  showAddDialog.value = false
-  newRequest.value = { title: '', description: '', category: 'feature' }
+  showAddDialog.value = false;
+  newRequest.value = { title: "", description: "", category: "feature" };
 }
 </script>
 
@@ -86,11 +107,15 @@ function closeAddDialog() {
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Feature Requests</h1>
-        <p v-if="product.description" class="text-gray-500 mt-1">{{ product.description }}</p>
+        <p v-if="product.description" class="text-gray-500 mt-1">
+          {{ product.description }}
+        </p>
       </div>
       <div class="flex items-center gap-4">
         <div class="text-right">
-          <p class="text-2xl font-bold text-gray-900">{{ product.featureRequestCount }}</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {{ product.featureRequestCount }}
+          </p>
           <p class="text-sm text-gray-500">feature requests</p>
         </div>
       </div>
@@ -125,7 +150,8 @@ function closeAddDialog() {
     <div v-else-if="requests.length === 0" class="text-center py-12">
       <p class="text-gray-500 mb-2">No feature requests found</p>
       <p class="text-sm text-gray-400">
-        Feature requests will appear here when processed from Gmail or added manually.
+        Feature requests will appear here when processed from Gmail or added
+        manually.
       </p>
     </div>
 
@@ -136,17 +162,22 @@ function closeAddDialog() {
     />
 
     <!-- Add Feature Request Modal -->
-    <UiModal :open="showAddDialog" title="Add Feature Request" @close="closeAddDialog">
+    <UiModal
+      :open="showAddDialog"
+      title="Add Feature Request"
+      @close="closeAddDialog"
+    >
       <form @submit.prevent="handleCreateRequest" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-          <UiInput
-            v-model="newRequest.title"
-            placeholder="Feature title"
-          />
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Title</label
+          >
+          <UiInput v-model="newRequest.title" placeholder="Feature title" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Description</label
+          >
           <textarea
             v-model="newRequest.description"
             rows="4"
@@ -155,7 +186,9 @@ function closeAddDialog() {
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Category</label
+          >
           <UiSelect
             v-model="newRequest.category"
             :options="formCategoryOptions"

@@ -1,7 +1,8 @@
 import { z } from 'zod'
-import { getOrCreateUser, hasProductAccess } from '../../utils/auth'
-import { featureRequestRepository } from '../../repositories/feature-request.repository'
-import { badRequest, handleDbError } from '../../utils/errors'
+import { getOrCreateUser } from '../../../utils/auth'
+import { hasProductAccess } from '../../../utils/organization'
+import { featureRequestRepository } from '../../../repositories/feature-request.repository'
+import { badRequest, handleDbError } from '../../../utils/errors'
 import { CATEGORIES } from '~~/shared/constants'
 
 const createFeatureRequestSchema = z.object({

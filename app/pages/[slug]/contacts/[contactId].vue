@@ -1,52 +1,55 @@
 <script setup lang="ts">
-import { SENTIMENT_LABELS } from '~~/shared/constants'
+import { SENTIMENT_LABELS } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
-const route = useRoute()
-const contactId = route.params.contactId as string
+const route = useRoute();
+const contactId = route.params.contactId as string;
+const { fetchProductServer } = useProduct();
 
-// Product is guaranteed to exist by middleware
-const { product } = useProduct()
+const { data: product } = await fetchProductServer(route.params.slug as string);
 
 interface FeedbackItem {
-  id: string
-  content: string
-  sentiment: string
-  senderEmail: string | null
-  senderName: string | null
-  aiExtracted: boolean
-  createdAt: string
+  id: string;
+  content: string;
+  sentiment: string;
+  senderEmail: string | null;
+  senderName: string | null;
+  aiExtracted: boolean;
+  createdAt: string;
   featureRequest: {
-    id: string
-    title: string
-    productId: string
-  } | null
+    id: string;
+    title: string;
+    productId: string;
+  } | null;
 }
 
 interface ContactWithFeedback {
-  id: string
-  email: string
-  name: string | null
-  createdAt: string
-  updatedAt: string
-  feedback: FeedbackItem[]
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: string;
+  updatedAt: string;
+  feedback: FeedbackItem[];
 }
 
-const loading = ref(true)
-const contact = ref<ContactWithFeedback | null>(null)
+const loading = ref(true);
+const contact = ref<ContactWithFeedback | null>(null);
 
 async function loadContact() {
-  loading.value = true
+  if (!product.value) return;
+  loading.value = true;
   try {
-    const { data } = await $fetch<{ data: ContactWithFeedback }>(`/api/contacts/${contactId}`)
-    contact.value = data
+    const { data } = await $fetch<{ data: ContactWithFeedback }>(
+      `/api/${route.params.slug}/contacts/${contactId}`
+    );
+    contact.value = data;
   } catch (error) {
-    console.error('Failed to load contact:', error)
+    console.error("Failed to load contact:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 

@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { ProcessedMessage } from '~~/server/db/schema/processed-messages'
+import type { ProcessedMessage } from "~~/server/db/schema/processed-messages";
 
 definePageMeta({
-  middleware: ['auth', 'product-slug'],
-})
+  middleware: ["auth"],
+});
 
-// Product is guaranteed to exist by middleware
-const { product } = useProduct()
+const route = useRoute();
+const { fetchProductServer } = useProduct();
+
+const { data: product } = await fetchProductServer(route.params.slug as string);
 
 
 interface Pagination {
@@ -36,21 +38,26 @@ const featureRequestOptions = [
 ]
 
 async function loadMessages(page = 1) {
-  loading.value = true
+  if (!product.value) return;
+  loading.value = true;
   try {
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('limit', '20')
-    if (sourceFilter.value) params.set('source', sourceFilter.value)
-    if (featureRequestFilter.value) params.set('isFeatureRequest', featureRequestFilter.value)
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("limit", "20");
+    if (sourceFilter.value) params.set("source", sourceFilter.value);
+    if (featureRequestFilter.value)
+      params.set("isFeatureRequest", featureRequestFilter.value);
 
-    const response = await $fetch<{ data: ProcessedMessage[]; pagination: Pagination }>(`/api/messages?${params}`)
-    messages.value = response.data
-    pagination.value = response.pagination
+    const response = await $fetch<{
+      data: ProcessedMessage[];
+      pagination: Pagination;
+    }>(`/api/${route.params.slug}/messages?${params}`);
+    messages.value = response.data;
+    pagination.value = response.pagination;
   } catch (error) {
-    console.error('Failed to load messages:', error)
+    console.error("Failed to load messages:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 

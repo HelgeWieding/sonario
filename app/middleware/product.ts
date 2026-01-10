@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { products, errorStatus, fetchProducts } = useProducts();
+  const { products, selectedProduct, errorStatus, fetchProducts, selectProductBySlug } = useProducts();
   const { orgId } = useAuth();
 
   // Skip redirect if already on an onboarding page
@@ -22,5 +22,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // No products in current context - redirect to create product
   if (products.value.length === 0) {
     return navigateTo("/onboarding/create-product");
+  }
+
+  // Sync selectedProduct with route slug
+  const routeSlug = to.params.slug as string | undefined;
+  if (routeSlug && selectedProduct.value?.slug !== routeSlug) {
+    selectProductBySlug(routeSlug);
   }
 });

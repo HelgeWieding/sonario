@@ -14,13 +14,41 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const slug = computed(() => route.params.slug as string);
+const requestId = computed(() => route.params.requestId as string);
 
 // Product is guaranteed to exist by middleware
 const { product } = useProduct();
 
-const { request, loading, updateRequest, deleteRequest, refresh } =
-  useFeatureRequest();
+const {
+  request,
+  loading,
+  fetchFeatureRequestClient,
+  updateRequest,
+  deleteRequest,
+  clearRequest,
+} = useFeatureRequest();
 const { addFeedback, deleteFeedback, loading: addingFeedback } = useFeedback();
+
+// Fetch on mount (client-side)
+onMounted(() => {
+  fetchFeatureRequestClient();
+});
+
+// Re-fetch when route params change (client-side navigation)
+watch([slug, requestId], () => {
+  fetchFeatureRequestClient();
+});
+
+// Clear state when leaving
+onUnmounted(() => {
+  clearRequest();
+});
+
+// Refresh function for use in handlers
+async function refresh() {
+  await fetchFeatureRequestClient();
+}
 
 const updating = ref(false);
 const showDeleteModal = ref(false);
@@ -112,7 +140,7 @@ async function handleDeleteFeedback(feedbackId: string) {
         This feature request doesn't exist or has been deleted.
       </p>
       <NuxtLink
-        :to="`/${product?.slug}/feature-requests`"
+        :to="`/${slug}/feature-requests`"
         class="text-primary-600 hover:underline"
       >
         Back to Feature Requests
@@ -123,7 +151,7 @@ async function handleDeleteFeedback(feedbackId: string) {
       <!-- Header -->
       <div class="mb-6">
         <NuxtLink
-          :to="`/${product?.slug}/feature-requests`"
+          :to="`/${slug}/feature-requests`"
           class="text-sm text-gray-500 hover:text-gray-700 mb-1 block"
         >
           &larr; Back to Feature Requests

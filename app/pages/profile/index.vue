@@ -9,10 +9,7 @@ const { user } = useUser()
 <template>
   <div class="max-w-2xl">
     <div class="mb-6">
-      <NuxtLink to="/settings" class="text-sm text-gray-500 hover:text-gray-700">
-        &larr; Back to Settings
-      </NuxtLink>
-      <h1 class="text-2xl font-bold text-gray-900 mt-1">Profile</h1>
+      <h1 class="text-2xl font-bold text-gray-900">Profile</h1>
     </div>
 
     <UiCard>

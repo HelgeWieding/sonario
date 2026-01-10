@@ -8,31 +8,33 @@ export function useFeatureRequest() {
   const slug = computed(() => route.params.slug as string);
   const requestId = computed(() => route.params.requestId as string);
 
-  const {
-    data: request,
-    status,
-    error,
-    refresh,
-  } = useAsyncData<FeatureRequestWithFeedback | null>(
-    `feature-request-${requestId.value}`,
-    async () => {
-      if (!slug.value || !requestId.value) return null;
-
-      try {
-        const { data } = await $fetch<{ data: FeatureRequestWithFeedback }>(
-          `/api/${slug.value}/feature-requests/${requestId.value}`
-        );
-        return data;
-      } catch {
-        return null;
-      }
-    },
-    {
-      watch: [slug, requestId],
-    }
+  // Global state using useState
+  const request = useState<FeatureRequestWithFeedback | null>(
+    "feature-request",
+    () => null
   );
+  const loading = useState<boolean>("feature-request-loading", () => false);
+  const error = useState<string | null>("feature-request-error", () => null);
 
-  const loading = computed(() => status.value === "pending");
+  // Client-side fetch - must be called explicitly
+  async function fetchFeatureRequestClient() {
+    if (!slug.value || !requestId.value) return;
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const { data } = await $fetch<{ data: FeatureRequestWithFeedback }>(
+        `/api/${slug.value}/feature-requests/${requestId.value}`
+      );
+      request.value = data;
+    } catch (e: any) {
+      error.value = e.data?.message || "Failed to fetch feature request";
+      request.value = null;
+    } finally {
+      loading.value = false;
+    }
+  }
 
   async function updateRequest(
     input: UpdateFeatureRequestInput
@@ -55,6 +57,8 @@ export function useFeatureRequest() {
   }
 
   async function deleteRequest(): Promise<boolean> {
+    if (!slug.value || !requestId.value) return false;
+
     try {
       const { data } = await $fetch(
         `/api/${slug.value}/feature-requests/${requestId.value}`,
@@ -69,12 +73,20 @@ export function useFeatureRequest() {
     }
   }
 
+  // Clear state when leaving page
+  function clearRequest() {
+    request.value = null;
+    error.value = null;
+    loading.value = false;
+  }
+
   return {
     request,
     loading,
     error,
-    refresh,
+    fetchFeatureRequestClient,
     updateRequest,
     deleteRequest,
+    clearRequest,
   };
 }

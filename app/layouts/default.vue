@@ -1,6 +1,8 @@
 <script setup lang="ts">
+const route = useRoute()
 const { isSignedIn } = useAuth()
 const { fetchOrganizationData } = useOrganizationManagement()
+const { selectedProduct, selectProductBySlug } = useProducts()
 
 // Fetch organization data server-side
 await fetchOrganizationData()
@@ -11,6 +13,19 @@ watch(isSignedIn, (signedIn) => {
     navigateTo('/sign-in')
   }
 }, { immediate: true })
+
+// Sync selectedProduct with route slug
+watch(
+  () => route.params.slug,
+  (newSlug) => {
+    if (typeof newSlug === 'string' && newSlug) {
+      if (selectedProduct.value?.slug !== newSlug) {
+        selectProductBySlug(newSlug)
+      }
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

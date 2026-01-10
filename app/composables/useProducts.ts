@@ -38,16 +38,12 @@ export function useProducts() {
       errorStatus.value = null
       productsOrgContext.value = currentOrgId
 
-      // Auto-select first product if none selected or current selection not in list
-      if (products.value.length > 0) {
-        const currentStillExists = selectedProduct.value
-          && products.value.some(p => p.id === selectedProduct.value?.id)
-
+      // Clear selection if current product no longer exists in list
+      if (selectedProduct.value) {
+        const currentStillExists = products.value.some(p => p.id === selectedProduct.value?.id)
         if (!currentStillExists) {
-          selectedProduct.value = products.value[0]
+          selectedProduct.value = null
         }
-      } else {
-        selectedProduct.value = null
       }
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to fetch products'
@@ -76,13 +72,9 @@ export function useProducts() {
         const updated = products.value.find(p => p.id === selectedProduct.value?.id)
         if (updated) {
           selectedProduct.value = updated
-        } else if (products.value.length > 0) {
-          selectedProduct.value = products.value[0]
         } else {
           selectedProduct.value = null
         }
-      } else if (products.value.length > 0) {
-        selectedProduct.value = products.value[0]
       }
     } catch (e: any) {
       error.value = e.data?.message || 'Failed to fetch products'
@@ -103,6 +95,19 @@ export function useProducts() {
     }
   }
 
+  // Select a product by slug
+  function selectProductBySlug(slug: string) {
+    const found = products.value.find(p => p.slug === slug)
+    if (found) {
+      selectedProduct.value = found
+    }
+  }
+
+  // Deselect the current product
+  function deselectProduct() {
+    selectedProduct.value = null
+  }
+
   // Check if there are any products
   const hasProducts = computed(() => products.value.length > 0)
 
@@ -121,5 +126,7 @@ export function useProducts() {
     refreshProducts,
     selectProduct,
     selectProductById,
+    selectProductBySlug,
+    deselectProduct,
   }
 }

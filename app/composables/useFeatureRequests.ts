@@ -1,80 +1,107 @@
-import type { FeatureRequest, FeatureRequestWithFeedback, CreateFeatureRequestInput, UpdateFeatureRequestInput } from '~~/shared/types'
-import type { Category, Status } from '~~/shared/constants'
+import type {
+  FeatureRequest,
+  FeatureRequestWithFeedback,
+  CreateFeatureRequestInput,
+  UpdateFeatureRequestInput,
+} from "~~/shared/types";
+import type { Category, Status } from "~~/shared/constants";
 
-interface FetchOptions {
-  productId: string
-  status?: Status
-  category?: Category
+interface FetchFeatureRequestsOptions {
+  productId: string;
+  productSlug: string;
+  status?: Status;
+  category?: Category;
 }
 
 export function useFeatureRequests() {
-  const requests = useState<FeatureRequest[]>('feature-requests', () => [])
-  const loading = useState('feature-requests-loading', () => false)
-  const error = useState<string | null>('feature-requests-error', () => null)
+  const requests = useState<FeatureRequest[]>("feature-requests", () => []);
+  const loading = useState("feature-requests-loading", () => false);
+  const error = useState<string | null>("feature-requests-error", () => null);
 
-  async function fetchRequests(options: FetchOptions) {
-    loading.value = true
-    error.value = null
+  async function fetchRequests(options: FetchFeatureRequestsOptions) {
+    loading.value = true;
+    error.value = null;
 
     try {
-      const params = new URLSearchParams({ productId: options.productId })
-      if (options.status) params.append('status', options.status)
-      if (options.category) params.append('category', options.category)
+      const params = new URLSearchParams();
+      if (options.status) params.append("status", options.status);
+      if (options.category) params.append("category", options.category);
+      if (options.productId) params.append("productId", options.productId);
 
-      const { data } = await $fetch<{ data: FeatureRequest[] }>(`/api/feature-requests?${params}`)
-      requests.value = data
+      const queryString = params.toString();
+      const url = `/api/${options.productSlug}/feature-requests${
+        queryString ? `?${queryString}` : ""
+      }`;
+      const { data } = await $fetch<{ data: FeatureRequest[] }>(url);
+      requests.value = data;
     } catch (e: any) {
-      error.value = e.data?.message || 'Failed to fetch feature requests'
+      error.value = e.data?.message || "Failed to fetch feature requests";
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
-  async function getRequest(id: string): Promise<FeatureRequestWithFeedback | null> {
+  async function getRequest(
+    id: string
+  ): Promise<FeatureRequestWithFeedback | null> {
     try {
-      const { data } = await $fetch<{ data: FeatureRequestWithFeedback }>(`/api/feature-requests/${id}`)
-      return data
+      const { data } = await $fetch<{ data: FeatureRequestWithFeedback }>(
+        `/api/feature-requests/${id}`
+      );
+      return data;
     } catch {
-      return null
+      return null;
     }
   }
 
-  async function createRequest(input: CreateFeatureRequestInput): Promise<FeatureRequest | null> {
+  async function createRequest(
+    slug: string,
+    input: CreateFeatureRequestInput
+  ): Promise<FeatureRequest | null> {
     try {
-      const { data } = await $fetch<{ data: FeatureRequest }>('/api/feature-requests', {
-        method: 'POST',
-        body: input,
-      })
-      requests.value = [data, ...requests.value]
-      return data
+      const { data } = await $fetch<{ data: FeatureRequest }>(
+        `/api/${slug}/feature-requests`,
+        {
+          method: "POST",
+          body: input,
+        }
+      );
+      requests.value = [data, ...requests.value];
+      return data;
     } catch (e: any) {
-      error.value = e.data?.message || 'Failed to create feature request'
-      return null
+      error.value = e.data?.message || "Failed to create feature request";
+      return null;
     }
   }
 
-  async function updateRequest(id: string, input: UpdateFeatureRequestInput): Promise<FeatureRequest | null> {
+  async function updateRequest(
+    id: string,
+    input: UpdateFeatureRequestInput
+  ): Promise<FeatureRequest | null> {
     try {
-      const { data } = await $fetch<{ data: FeatureRequest }>(`/api/feature-requests/${id}`, {
-        method: 'PUT',
-        body: input,
-      })
-      requests.value = requests.value.map(r => r.id === id ? data : r)
-      return data
+      const { data } = await $fetch<{ data: FeatureRequest }>(
+        `/api/feature-requests/${id}`,
+        {
+          method: "PUT",
+          body: input,
+        }
+      );
+      requests.value = requests.value.map((r) => (r.id === id ? data : r));
+      return data;
     } catch (e: any) {
-      error.value = e.data?.message || 'Failed to update feature request'
-      return null
+      error.value = e.data?.message || "Failed to update feature request";
+      return null;
     }
   }
 
   async function deleteRequest(id: string): Promise<boolean> {
     try {
-      await $fetch(`/api/feature-requests/${id}`, { method: 'DELETE' })
-      requests.value = requests.value.filter(r => r.id !== id)
-      return true
+      await $fetch(`/api/feature-requests/${id}`, { method: "DELETE" });
+      requests.value = requests.value.filter((r) => r.id !== id);
+      return true;
     } catch (e: any) {
-      error.value = e.data?.message || 'Failed to delete feature request'
-      return false
+      error.value = e.data?.message || "Failed to delete feature request";
+      return false;
     }
   }
 
@@ -87,5 +114,5 @@ export function useFeatureRequests() {
     createRequest,
     updateRequest,
     deleteRequest,
-  }
+  };
 }

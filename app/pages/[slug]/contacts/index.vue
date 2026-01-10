@@ -4,9 +4,10 @@ definePageMeta({
 });
 
 const route = useRoute();
-const { fetchProductServer } = useProduct();
+const slug = computed(() => route.params.slug as string);
+const { product, fetchProductServer } = useProduct();
 
-const { data: product } = await fetchProductServer(route.params.slug as string);
+await fetchProductServer(slug);
 
 interface ContactWithStats {
   id: string;

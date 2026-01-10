@@ -3,6 +3,7 @@ import type {
   ProductWithStats,
   UpdateProductInput,
 } from "~~/shared/types";
+import type { Ref, ComputedRef } from "vue";
 
 export function useProduct() {
   const product = useState<ProductWithStats | null>("product", () => null);
@@ -20,34 +21,49 @@ export function useProduct() {
     return {};
   }
 
-  // Fetch user's first product (for dashboard/settings/onboarding)
-  async function fetchFirstProduct() {
+  // Fetch product by URL slug (for [slug]/* routes)
+  // Accepts a ref/computed to re-fetch when slug changes
+  async function fetchProductServer(slug: Ref<string> | ComputedRef<string>) {
     const headers = getRequestHeaders();
 
-    try {
-      // Use $fetch directly to always get fresh data with current auth context
-      const response = await $fetch<{ data: ProductWithStats }>(
-        "/api/products",
-        { headers }
-      );
-      product.value = response.data;
-      error.value = null;
-      errorStatus.value = null;
-    } catch (e: any) {
-      error.value = e.data?.message || "Failed to fetch product";
-      errorStatus.value = e.statusCode || null;
-      product.value = null;
-    }
-  }
+    const { data, error: fetchError } = await useAsyncData(
+      `product-${slug.value}`,
+      async () => {
+        const result = await $fetch<{ data: ProductWithStats }>(
+          `/api/products/${slug.value}`,
+          { headers }
+        );
+        return result.data;
+      },
+      {
+        watch: [slug],
+      }
+    );
 
-  // Fetch product by URL slug (for [slug]/* routes) - runs on server only
-  async function fetchProductServer(slug: string) {
-    const headers = getRequestHeaders();
+    // Sync to shared product state
+    watch(
+      data,
+      (newData) => {
+        if (newData) {
+          product.value = newData;
+        }
+      },
+      { immediate: true }
+    );
 
-    return useAsyncData(`product-${slug}`, () =>
-      $fetch<{ data: ProductWithStats }>(`/api/products/${slug}`, {
-        headers,
-      })
+    // Sync errors
+    watch(
+      fetchError,
+      (err) => {
+        if (err) {
+          error.value = err.message || "Failed to fetch product";
+          errorStatus.value = (err as any).statusCode || null;
+        } else {
+          error.value = null;
+          errorStatus.value = null;
+        }
+      },
+      { immediate: true }
     );
   }
 
@@ -97,7 +113,6 @@ export function useProduct() {
     product,
     error,
     errorStatus,
-    fetchFirstProduct,
     fetchProductServer,
     createProduct,
     updateProduct,

@@ -12,13 +12,10 @@ definePageMeta({
 
 // Product is guaranteed to exist by middleware
 const route = useRoute();
-const { fetchProductServer } = useProduct();
+const slug = computed(() => route.params.slug as string);
+const { product, fetchProductServer } = useProduct();
 
-const {
-  data: product,
-  error,
-  status,
-} = await fetchProductServer(route.params.slug as string);
+await fetchProductServer(slug);
 
 const {
   requests,
@@ -61,9 +58,9 @@ const formCategoryOptions = CATEGORIES.map((c) => ({
 
 async function loadRequests() {
   if (!product.value) return;
-  console.log("product.value", product.value);
   await fetchRequests({
     productId: product.value.id,
+    productSlug: product.value.slug,
     status: (statusFilter.value as any) || undefined,
     category: (categoryFilter.value as any) || undefined,
   });
@@ -78,11 +75,11 @@ watch([statusFilter, categoryFilter], () => {
 });
 
 async function handleCreateRequest() {
-  if (!isFormValid.value || !product.value) return;
+  console.log(route.params.slug);
 
   creating.value = true;
-  const result = await createRequest({
-    productId: product.value.id,
+  const result = await createRequest(route.params.slug as string, {
+    productId: product.value?.id ?? "",
     title: newRequest.value.title.trim(),
     description: newRequest.value.description.trim(),
     category: newRequest.value.category,
@@ -107,14 +104,14 @@ function closeAddDialog() {
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Feature Requests</h1>
-        <p v-if="product.description" class="text-gray-500 mt-1">
-          {{ product.description }}
+        <p v-if="product?.description" class="text-gray-500 mt-1">
+          {{ product?.description }}
         </p>
       </div>
       <div class="flex items-center gap-4">
         <div class="text-right">
           <p class="text-2xl font-bold text-gray-900">
-            {{ product.featureRequestCount }}
+            {{ product?.featureRequestCount }}
           </p>
           <p class="text-sm text-gray-500">feature requests</p>
         </div>

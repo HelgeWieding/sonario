@@ -1,74 +1,83 @@
 <script setup lang="ts">
-import type { FeatureRequestWithFeedback } from "~~/shared/types";
-import { STATUS_LABELS, CATEGORY_LABELS, STATUSES } from "~~/shared/constants";
+import {
+  STATUS_LABELS,
+  CATEGORY_LABELS,
+  STATUSES,
+  SENTIMENTS,
+  SENTIMENT_LABELS,
+} from "~~/shared/constants";
+import type { Sentiment } from "~~/shared/constants";
 
 definePageMeta({
   middleware: ["auth"],
 });
 
 const route = useRoute();
-const requestId = route.params.requestId as string;
+const router = useRouter();
 
 // Product is guaranteed to exist by middleware
 const { product } = useProduct();
 
-const { getRequest, updateRequest, deleteRequest } = useFeatureRequests();
-const { addFeedback, deleteFeedback } = useFeedback();
-const router = useRouter();
+const { request, loading, updateRequest, deleteRequest, refresh } =
+  useFeatureRequest();
+const { addFeedback, deleteFeedback, loading: addingFeedback } = useFeedback();
 
-const request = ref<FeatureRequestWithFeedback | null>(null);
-const loading = ref(true);
 const updating = ref(false);
 const showDeleteModal = ref(false);
+const showFeedbackModal = ref(false);
 
-const newFeedback = ref("");
-const addingFeedback = ref(false);
+const feedbackForm = reactive({
+  content: "",
+  senderEmail: "",
+  senderName: "",
+  sentiment: undefined as Sentiment | undefined,
+});
 
-async function loadRequest() {
-  loading.value = true;
-  request.value = await getRequest(requestId);
-  loading.value = false;
+function resetFeedbackForm() {
+  feedbackForm.content = "";
+  feedbackForm.senderEmail = "";
+  feedbackForm.senderName = "";
+  feedbackForm.sentiment = undefined;
 }
 
 async function handleStatusChange(status: string) {
   if (!request.value) return;
   updating.value = true;
-  await updateRequest(requestId, { status: status as any });
-  await loadRequest();
+  await updateRequest({ status: status as any });
+  await refresh();
   updating.value = false;
 }
 
 async function handleDelete() {
-  const success = await deleteRequest(requestId);
+  const success = await deleteRequest();
   if (success) {
-    router.push(`/${product.value?.slug}/feature-requests`);
+    router.push(`/${route.params.slug}/feature-requests`);
   }
 }
 
 async function handleAddFeedback() {
-  if (!newFeedback.value.trim()) return;
-  addingFeedback.value = true;
+  if (!feedbackForm.content.trim()) return;
+
   const feedback = await addFeedback({
-    featureRequestId: requestId,
-    content: newFeedback.value,
+    content: feedbackForm.content,
+    senderEmail: feedbackForm.senderEmail || undefined,
+    senderName: feedbackForm.senderName || undefined,
+    sentiment: feedbackForm.sentiment,
   });
+
   if (feedback) {
-    newFeedback.value = "";
-    await loadRequest();
+    resetFeedbackForm();
+    showFeedbackModal.value = false;
+    await refresh();
   }
-  addingFeedback.value = false;
 }
 
 async function handleDeleteFeedback(feedbackId: string) {
   const success = await deleteFeedback(feedbackId);
   if (success) {
-    await loadRequest();
+    await refresh();
   }
 }
-
-onMounted(() => {
-  loadRequest();
-});
 </script>
 
 <template>
@@ -165,28 +174,14 @@ onMounted(() => {
 
           <!-- Feedback Section -->
           <div class="mt-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">
-              Feedback ({{ request.feedback.length }})
-            </h2>
-
-            <!-- Add Feedback -->
-            <UiCard class="mb-4">
-              <textarea
-                v-model="newFeedback"
-                class="input"
-                rows="3"
-                placeholder="Add feedback..."
-              />
-              <div class="mt-2 flex justify-end">
-                <UiButton
-                  size="sm"
-                  :loading="addingFeedback"
-                  @click="handleAddFeedback"
-                >
-                  Add Feedback
-                </UiButton>
-              </div>
-            </UiCard>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-gray-900">
+                Feedback ({{ request.feedback.length }})
+              </h2>
+              <UiButton size="sm" @click="showFeedbackModal = true">
+                Add Feedback
+              </UiButton>
+            </div>
 
             <!-- Feedback List -->
             <div class="space-y-3">
@@ -287,6 +282,78 @@ onMounted(() => {
             >Cancel</UiButton
           >
           <UiButton variant="danger" @click="handleDelete">Delete</UiButton>
+        </div>
+      </template>
+    </UiModal>
+
+    <!-- Add Feedback Modal -->
+    <UiModal
+      :open="showFeedbackModal"
+      title="Add Feedback"
+      @close="showFeedbackModal = false"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Feedback</label
+          >
+          <textarea
+            v-model="feedbackForm.content"
+            class="input"
+            rows="3"
+            placeholder="Enter feedback..."
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Sender Email</label
+          >
+          <input
+            v-model="feedbackForm.senderEmail"
+            type="email"
+            class="input"
+            placeholder="email@example.com"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Sender Name</label
+          >
+          <input
+            v-model="feedbackForm.senderName"
+            type="text"
+            class="input"
+            placeholder="John Doe"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Sentiment (optional)</label
+          >
+          <select v-model="feedbackForm.sentiment" class="input">
+            <option :value="undefined">Select sentiment...</option>
+            <option
+              v-for="sentiment in SENTIMENTS"
+              :key="sentiment"
+              :value="sentiment"
+            >
+              {{ SENTIMENT_LABELS[sentiment] }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UiButton variant="secondary" @click="showFeedbackModal = false"
+            >Cancel</UiButton
+          >
+          <UiButton :loading="addingFeedback" @click="handleAddFeedback"
+            >Add Feedback</UiButton
+          >
         </div>
       </template>
     </UiModal>

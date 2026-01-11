@@ -7,7 +7,7 @@ import {
 } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ["auth", "product"],
+  middleware: ["auth"],
 });
 
 // Product is guaranteed to exist by middleware
@@ -16,6 +16,7 @@ const slug = computed(() => route.params.slug as string);
 const { product, fetchProductServer } = useProduct();
 
 await fetchProductServer(slug);
+console.log("product server", product.value);
 
 const {
   requests,

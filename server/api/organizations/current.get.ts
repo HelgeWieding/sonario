@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/nuxt/server";
-import { getAuthContext } from "../../utils/organization";
+import { getAuthContext } from "../../utils/auth";
 
 export default defineEventHandler(async (event) => {
   const auth = getAuthContext(event);

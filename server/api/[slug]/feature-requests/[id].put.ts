@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { getOrCreateUser } from '../../../utils/auth'
-import { hasProductAccess } from '../../../utils/organization'
+import { getAuthContext } from '../../../utils/auth'
+import { productRepository } from '../../../repositories/product.repository'
 import { featureRequestRepository } from '../../../repositories/feature-request.repository'
 import { notFound, badRequest, handleDbError } from '../../../utils/errors'
 import { CATEGORIES, STATUSES } from '~~/shared/constants'
@@ -13,7 +13,7 @@ const updateFeatureRequestSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = await getOrCreateUser(event)
+  const auth = getAuthContext(event)
   const id = getRouterParam(event, 'id')
 
   if (!id) {
@@ -34,7 +34,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify user has access to the product (owner or org member)
-  const hasAccess = await hasProductAccess(event, existing.product.id, user.id)
+  const hasAccess = await productRepository.hasProductAccess(
+    auth.orgId ?? '',
+    existing.product.id
+  )
   if (!hasAccess) {
     notFound('Feature request not found')
   }

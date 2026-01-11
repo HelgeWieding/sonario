@@ -2,7 +2,7 @@
 import { SENTIMENT_LABELS } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ["auth", "product"],
+  middleware: ["auth"],
 });
 
 const route = useRoute();

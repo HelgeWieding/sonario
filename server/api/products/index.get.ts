@@ -1,31 +1,23 @@
-import { getOrCreateUser } from '../../utils/auth'
-import { getContextProductIds } from '../../utils/organization'
-import { productRepository } from '../../repositories/product.repository'
-import { notFound } from '../../utils/errors'
+import { getOrCreateUser } from "../../utils/auth";
+import { productRepository } from "../../repositories/product.repository";
+import { notFound } from "../../utils/errors";
 
 export default defineEventHandler(async (event) => {
-  const user = await getOrCreateUser(event)
+  const user = await getOrCreateUser(event);
 
-  // Get products for current context (org or personal)
-  const productIds = await getContextProductIds(event, user.id)
-
-  if (productIds.length === 0) {
-    notFound('No product found')
-  }
-
-  // Get the first accessible product with stats
-  const products = await productRepository.findAllByIds(productIds)
+  // Get all products
+  const products = await productRepository.findAll();
   if (products.length === 0) {
-    notFound('No product found')
+    return notFound("No product found");
   }
 
-  const product = products[0]
-  const stats = await productRepository.getProductStats(product.id)
+  const product = products[0];
+  const stats = await productRepository.getProductStats(product.id);
 
   return {
     data: {
       ...product,
       ...stats,
     },
-  }
-})
+  };
+});

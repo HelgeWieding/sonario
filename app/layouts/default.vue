@@ -2,10 +2,13 @@
 const route = useRoute()
 const { isSignedIn } = useAuth()
 const { fetchOrganizationData } = useOrganizationManagement()
-const { selectedProduct, selectProductBySlug } = useProducts()
+const { selectedProduct, selectProductBySlug, fetchProductsWithRedirect } = useProducts()
 
 // Fetch organization data server-side
 await fetchOrganizationData()
+
+// Fetch products (redirect to create-product if empty)
+await fetchProductsWithRedirect()
 
 // Redirect to sign-in if not authenticated
 watch(isSignedIn, (signedIn) => {

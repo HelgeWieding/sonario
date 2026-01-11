@@ -1,12 +1,15 @@
 <script setup lang="ts">
 const route = useRoute();
-const { products, selectedProduct, selectProduct, deselectProduct } = useProducts();
+const { products, selectedProduct, selectProduct, deselectProduct } =
+  useProducts();
 
 // Persist collapsed state
 const isCollapsed = useState("sidebar-collapsed", () => false);
 
 // Show product list when no product is selected
-const showProductList = computed(() => !selectedProduct.value && products.value.length > 0);
+const showProductList = computed(
+  () => !selectedProduct.value && products.value.length > 0
+);
 
 const navigation = computed(() => {
   const slug = selectedProduct.value?.slug;
@@ -79,7 +82,7 @@ function toggleSidebar() {
   isCollapsed.value = !isCollapsed.value;
 }
 
-function handleProductSelect(product: typeof products.value[0]) {
+function handleProductSelect(product: (typeof products.value)[0]) {
   selectProduct(product);
 }
 
@@ -96,33 +99,65 @@ function handleBackToProducts() {
     ]"
   >
     <!-- Back button when product is selected -->
-    <div v-if="selectedProduct && !isCollapsed" class="p-2 border-b border-gray-200">
+    <div
+      v-if="selectedProduct && !isCollapsed"
+      class="p-2 border-b border-gray-200"
+    >
       <button
         type="button"
         class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
         @click="handleBackToProducts"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
         </svg>
         <span>All Products</span>
       </button>
       <div class="mt-2 px-3 py-1">
-        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Current Product</span>
-        <p class="text-sm font-semibold text-gray-900 mt-1 truncate">{{ selectedProduct.name }}</p>
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wider"
+          >Current Product</span
+        >
+        <p class="text-sm font-semibold text-gray-900 mt-1 truncate">
+          {{ selectedProduct.name }}
+        </p>
       </div>
     </div>
 
     <!-- Collapsed back button -->
-    <div v-if="selectedProduct && isCollapsed" class="p-2 border-b border-gray-200">
+    <div
+      v-if="selectedProduct && isCollapsed"
+      class="p-2 border-b border-gray-200"
+    >
       <button
         type="button"
         class="w-full flex items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
         title="All Products"
         @click="handleBackToProducts"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-4 h-4"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+          />
         </svg>
       </button>
     </div>
@@ -144,7 +179,9 @@ function handleBackToProducts() {
             ]"
             :title="isCollapsed ? 'Dashboard' : undefined"
           >
-            <span class="w-5 h-5 flex items-center justify-center flex-shrink-0">
+            <span
+              class="w-5 h-5 flex items-center justify-center flex-shrink-0"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -168,16 +205,21 @@ function handleBackToProducts() {
             <button
               type="button"
               :class="[
-                route.path.startsWith('/profile') || route.path.startsWith('/team')
+                route.path.startsWith('/profile') ||
+                route.path.startsWith('/team')
                   ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-50',
                 'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                 isCollapsed ? 'justify-center' : '',
               ]"
               :title="isCollapsed ? 'Profile' : undefined"
-              @click="isCollapsed ? (isCollapsed = false) : toggleSection('Profile')"
+              @click="
+                isCollapsed ? (isCollapsed = false) : toggleSection('Profile')
+              "
             >
-              <span class="w-5 h-5 flex items-center justify-center flex-shrink-0">
+              <span
+                class="w-5 h-5 flex items-center justify-center flex-shrink-0"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -196,14 +238,21 @@ function handleBackToProducts() {
               <template v-if="!isCollapsed">
                 <span class="flex-1 text-left whitespace-nowrap">Profile</span>
                 <svg
-                  :class="['w-4 h-4 transition-transform', isSectionExpanded('Profile') ? 'rotate-180' : '']"
+                  :class="[
+                    'w-4 h-4 transition-transform',
+                    isSectionExpanded('Profile') ? 'rotate-180' : '',
+                  ]"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke-width="1.5"
                   stroke="currentColor"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                  />
                 </svg>
               </template>
             </button>
@@ -240,7 +289,10 @@ function handleBackToProducts() {
 
           <!-- Products list below -->
           <div class="border-t border-gray-200 my-2 pt-2">
-            <div v-if="!isCollapsed" class="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
+            <div
+              v-if="!isCollapsed"
+              class="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider"
+            >
               Your Products
             </div>
             <button
@@ -255,16 +307,31 @@ function handleBackToProducts() {
               :title="isCollapsed ? item.name : undefined"
               @click="handleProductSelect(item)"
             >
-              <span class="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold">
+              <span
+                class="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold"
+              >
                 {{ item.name.charAt(0).toUpperCase() }}
               </span>
               <template v-if="!isCollapsed">
                 <div class="flex-1 min-w-0">
                   <span class="block truncate">{{ item.name }}</span>
-                  <span class="text-xs text-gray-400">{{ item.featureRequestCount || 0 }} requests</span>
+                  <span class="text-xs text-gray-400"
+                    >{{ item.featureRequestCount || 0 }} requests</span
+                  >
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-4 h-4 text-gray-400"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                  />
                 </svg>
               </template>
             </button>
@@ -372,7 +439,9 @@ function handleBackToProducts() {
               ]"
               :title="isCollapsed ? item.name : undefined"
             >
-              <span class="w-5 h-5 flex items-center justify-center flex-shrink-0">
+              <span
+                class="w-5 h-5 flex items-center justify-center flex-shrink-0"
+              >
                 <svg
                   v-if="item.icon === 'home'"
                   xmlns="http://www.w3.org/2000/svg"

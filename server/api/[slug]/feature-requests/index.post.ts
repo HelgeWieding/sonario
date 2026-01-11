@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { getOrCreateUser } from "../../../utils/auth";
-import { hasProductAccess } from "../../../utils/organization";
+import { getAuthContext } from "../../../utils/auth";
+import { productRepository } from "../../../repositories/product.repository";
 import { featureRequestRepository } from "../../../repositories/feature-request.repository";
 import { badRequest, handleDbError } from "../../../utils/errors";
 import { CATEGORIES } from "~~/shared/constants";
@@ -13,7 +13,7 @@ const createFeatureRequestSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  const user = await getOrCreateUser(event);
+  const auth = getAuthContext(event);
 
   const body = await readBody(event);
   const result = createFeatureRequestSchema.safeParse(body);
@@ -23,10 +23,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify user has access to this product (owner or org member)
-  const hasAccess = await hasProductAccess(
-    event,
-    result.data.productId,
-    user.id
+  const hasAccess = await productRepository.hasProductAccess(
+    auth.orgId ?? "",
+    result.data.productId
   );
 
   if (!hasAccess) {

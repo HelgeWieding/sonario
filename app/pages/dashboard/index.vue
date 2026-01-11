@@ -2,7 +2,7 @@
 import type { DashboardStats } from '~~/shared/types'
 
 definePageMeta({
-  middleware: ['auth', 'product'],
+  middleware: ['auth'],
 })
 
 // Use the products composable for multi-product support

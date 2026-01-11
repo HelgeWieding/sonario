@@ -7,11 +7,25 @@ definePageMeta({
 const router = useRouter();
 const { error, createProduct } = useProduct();
 const { orgId } = useAuth();
+const { fetchProducts, hasProducts } = useProducts();
 
 // If no org, redirect to create-organization
 if (!orgId.value) {
   navigateTo("/onboarding/create-organization");
 }
+
+// Check if org already has products - skip to dashboard
+const checkingProducts = ref(true);
+onMounted(async () => {
+  if (orgId.value) {
+    await fetchProducts();
+    if (hasProducts.value) {
+      navigateTo("/dashboard");
+      return;
+    }
+  }
+  checkingProducts.value = false;
+});
 
 const productName = ref("");
 const description = ref("");
@@ -37,7 +51,11 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow p-8">
+  <div v-if="checkingProducts" class="bg-white rounded-lg shadow p-8 text-center">
+    <div class="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto"></div>
+    <p class="mt-4 text-gray-600">Loading...</p>
+  </div>
+  <div v-else class="bg-white rounded-lg shadow p-8">
     <div class="text-center mb-6">
       <h2 class="text-2xl font-bold text-gray-900">Create Your First Product</h2>
       <p class="mt-2 text-sm text-gray-600">

@@ -9,7 +9,7 @@ import {
 import type { Sentiment } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth", "product"],
 });
 
 const route = useRoute();

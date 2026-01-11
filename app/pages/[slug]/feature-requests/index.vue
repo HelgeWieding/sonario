@@ -7,7 +7,7 @@ import {
 } from "~~/shared/constants";
 
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth", "product"],
 });
 
 // Product is guaranteed to exist by middleware

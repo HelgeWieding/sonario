@@ -87,7 +87,7 @@ onMounted(() => {
           </UiCard>
         </NuxtLink>
 
-        <NuxtLink to="/settings/gmail">
+        <NuxtLink v-if="selectedProduct" :to="`/${selectedProduct.slug}/settings/gmail`">
           <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-green-100 rounded-lg">
@@ -103,7 +103,7 @@ onMounted(() => {
           </UiCard>
         </NuxtLink>
 
-        <NuxtLink to="/settings/product">
+        <NuxtLink v-if="selectedProduct" :to="`/${selectedProduct.slug}/settings`">
           <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-purple-100 rounded-lg">

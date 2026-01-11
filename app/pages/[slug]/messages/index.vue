@@ -2,7 +2,7 @@
 import type { ProcessedMessage } from "~~/server/db/schema/processed-messages";
 
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth", "product"],
 });
 
 const route = useRoute();

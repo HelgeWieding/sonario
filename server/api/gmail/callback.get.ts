@@ -13,12 +13,24 @@ export default defineEventHandler(async (event) => {
   const code = query.code as string
   const error = query.error as string
 
+  // Get user's product first to know where to redirect
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
+  })
+
+  // Fallback redirect if no product found
+  const settingsUrl = product ? `/${product.slug}/settings/gmail` : '/dashboard'
+
   if (error) {
-    return sendRedirect(event, '/settings/gmail?error=' + encodeURIComponent(error))
+    return sendRedirect(event, `${settingsUrl}?error=` + encodeURIComponent(error))
   }
 
   if (!code) {
     badRequest('Authorization code is required')
+  }
+
+  if (!product) {
+    return sendRedirect(event, '/dashboard?error=no_product')
   }
 
   try {
@@ -26,7 +38,7 @@ export default defineEventHandler(async (event) => {
     const tokens = await GmailService.exchangeCodeForTokens(code)
 
     if (!tokens.access_token || !tokens.refresh_token) {
-      return sendRedirect(event, '/settings/gmail?error=missing_tokens')
+      return sendRedirect(event, `${settingsUrl}?error=missing_tokens`)
     }
 
     // Create Gmail service to get user email and setup watch
@@ -34,7 +46,7 @@ export default defineEventHandler(async (event) => {
     const email = await gmailService.getUserEmail()
 
     if (!email) {
-      return sendRedirect(event, '/settings/gmail?error=email_fetch_failed')
+      return sendRedirect(event, `${settingsUrl}?error=email_fetch_failed`)
     }
 
     // Setup Gmail watch for push notifications (optional - may fail in dev without Pub/Sub)
@@ -50,15 +62,6 @@ export default defineEventHandler(async (event) => {
     if (!historyId) {
       const profile = await gmailService.getProfile()
       historyId = profile?.historyId || null
-    }
-
-    // Get user's product
-    const product = await db.query.products.findFirst({
-      where: eq(schema.products.userId, user.id),
-    })
-
-    if (!product) {
-      return sendRedirect(event, '/settings/gmail?error=no_product')
     }
 
     // Check for existing connection and update or create
@@ -89,9 +92,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    return sendRedirect(event, '/settings/gmail?success=true')
-  } catch (error) {
-    console.error('Gmail callback error:', error)
-    return sendRedirect(event, '/settings/gmail?error=connection_failed')
+    return sendRedirect(event, `${settingsUrl}?success=true`)
+  } catch (err) {
+    console.error('Gmail callback error:', err)
+    return sendRedirect(event, `${settingsUrl}?error=connection_failed`)
   }
 })

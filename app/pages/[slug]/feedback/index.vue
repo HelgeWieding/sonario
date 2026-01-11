@@ -4,7 +4,7 @@ import type { FeatureRequest } from "~~/shared/types";
 import { SENTIMENT_LABELS, SENTIMENTS } from "~~/shared/constants/enums";
 
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth", "product"],
 });
 
 const route = useRoute();

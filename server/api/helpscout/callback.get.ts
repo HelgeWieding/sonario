@@ -11,12 +11,24 @@ export default defineEventHandler(async (event) => {
   const code = query.code as string
   const error = query.error as string
 
+  // Get user's product first to know where to redirect
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.userId, user.id),
+  })
+
+  // Fallback redirect if no product found
+  const settingsUrl = product ? `/${product.slug}/settings/helpscout` : '/dashboard'
+
   if (error) {
-    return sendRedirect(event, '/settings/helpscout?error=' + encodeURIComponent(error))
+    return sendRedirect(event, `${settingsUrl}?error=` + encodeURIComponent(error))
   }
 
   if (!code) {
-    return sendRedirect(event, '/settings/helpscout?error=missing_code')
+    return sendRedirect(event, `${settingsUrl}?error=missing_code`)
+  }
+
+  if (!product) {
+    return sendRedirect(event, '/dashboard?error=no_product')
   }
 
   try {
@@ -24,20 +36,11 @@ export default defineEventHandler(async (event) => {
     const tokens = await HelpScoutService.exchangeCodeForTokens(code)
 
     if (!tokens.access_token || !tokens.refresh_token) {
-      return sendRedirect(event, '/settings/helpscout?error=missing_tokens')
+      return sendRedirect(event, `${settingsUrl}?error=missing_tokens`)
     }
 
     // Calculate token expiration
     const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000)
-
-    // Get user's product
-    const product = await db.query.products.findFirst({
-      where: eq(schema.products.userId, user.id),
-    })
-
-    if (!product) {
-      return sendRedirect(event, '/settings/helpscout?error=no_product')
-    }
 
     // Check for existing connection and update or create
     const existingConnection = await db.query.helpscoutConnections.findFirst({
@@ -64,9 +67,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    return sendRedirect(event, '/settings/helpscout?success=true')
-  } catch (error) {
-    console.error('Help Scout callback error:', error)
-    return sendRedirect(event, '/settings/helpscout?error=connection_failed')
+    return sendRedirect(event, `${settingsUrl}?success=true`)
+  } catch (err) {
+    console.error('Help Scout callback error:', err)
+    return sendRedirect(event, `${settingsUrl}?error=connection_failed`)
   }
 })

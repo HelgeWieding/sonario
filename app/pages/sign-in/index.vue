@@ -1,11 +1,15 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth',
-})
+  layout: "auth",
+});
 </script>
 
 <template>
   <div>
-    <SignIn fallback-redirect-url="/dashboard" sign-up-url="/sign-up" />
+    <SignIn
+      fallback-redirect-url="/dashboard"
+      sign-up-url="/sign-up"
+      redirect-url="/dashboard"
+    />
   </div>
 </template>

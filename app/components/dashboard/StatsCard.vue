@@ -9,9 +9,9 @@ defineProps<Props>()
 </script>
 
 <template>
-  <UiCard>
-    <p class="text-sm font-medium text-gray-500">{{ title }}</p>
-    <p class="mt-1 text-3xl font-bold text-gray-900">{{ value }}</p>
-    <p v-if="description" class="mt-1 text-sm text-gray-500">{{ description }}</p>
+  <UiCard class="group">
+    <p class="text-sm font-medium text-neutral-500">{{ title }}</p>
+    <p class="mt-2 text-3xl font-semibold text-neutral-900 tracking-tight">{{ value }}</p>
+    <p v-if="description" class="mt-1 text-sm text-neutral-500">{{ description }}</p>
   </UiCard>
 </template>

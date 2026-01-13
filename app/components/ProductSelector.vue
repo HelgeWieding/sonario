@@ -29,7 +29,7 @@ function handleChange(productId: string) {
   <div class="relative">
     <select
       :value="selectedId"
-      class="block w-full px-3 py-2 pr-8 text-sm font-medium border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none cursor-pointer"
+      class="block w-full pl-3 pr-8 py-1.5 text-sm font-medium text-neutral-700 border border-neutral-200 rounded-lg bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent appearance-none cursor-pointer transition-colors duration-150"
       @change="handleChange(($event.target as HTMLSelectElement).value)"
     >
       <option
@@ -44,8 +44,8 @@ function handleChange(productId: string) {
       </option>
     </select>
     <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
       </svg>
     </div>
   </div>

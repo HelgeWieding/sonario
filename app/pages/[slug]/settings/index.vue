@@ -135,12 +135,15 @@ function cancelSharingChange() {
 
 <template>
   <div class="max-w-2xl">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6">Product Settings</h1>
+    <div class="mb-8">
+      <h1 class="text-2xl font-semibold text-neutral-900 tracking-tight">Product Settings</h1>
+      <p class="mt-1 text-sm text-neutral-500">Manage your product configuration</p>
+    </div>
 
     <div class="space-y-6">
       <UiCard>
-        <h2 class="font-semibold text-gray-900 mb-4">Product Name</h2>
-        <p class="text-sm text-gray-500 mb-4">
+        <h2 class="font-semibold text-neutral-900 mb-1">Product Name</h2>
+        <p class="text-sm text-neutral-500 mb-4">
           This is the name of your product. Feature requests will be associated with this product.
         </p>
 
@@ -155,8 +158,8 @@ function cancelSharingChange() {
       </UiCard>
 
       <UiCard v-if="orgData && hasMemberships">
-        <h2 class="font-semibold text-gray-900 mb-4">Team Sharing</h2>
-        <p class="text-sm text-gray-500 mb-4">
+        <h2 class="font-semibold text-neutral-900 mb-1">Team Sharing</h2>
+        <p class="text-sm text-neutral-500 mb-4">
           Choose who can access this product and its feature requests.
         </p>
 
@@ -169,7 +172,7 @@ function cancelSharingChange() {
             placeholder="Select access level"
             @update:model-value="handleSharingSelect"
           />
-          <p class="text-sm text-gray-500 mt-2">
+          <p class="text-sm text-neutral-500 mt-2">
             {{ selectedOrgId !== PERSONAL_VALUE ? 'All team members can view and manage this product' : 'Only you can access this product' }}
           </p>
         </div>
@@ -177,7 +180,7 @@ function cancelSharingChange() {
 
       <!-- Confirmation Dialog -->
       <UiModal :open="showConfirmDialog" title="Change Product Access" @close="cancelSharingChange">
-        <p class="text-gray-600">{{ confirmMessage }}</p>
+        <p class="text-neutral-600">{{ confirmMessage }}</p>
         <template #footer>
           <div class="flex justify-end gap-3">
             <UiButton variant="secondary" @click="cancelSharingChange">
@@ -191,16 +194,16 @@ function cancelSharingChange() {
       </UiModal>
 
       <UiCard>
-        <h2 class="font-semibold text-gray-900 mb-4">HelpScout Auto-Drafts</h2>
-        <p class="text-sm text-gray-500 mb-4">
+        <h2 class="font-semibold text-neutral-900 mb-1">HelpScout Auto-Drafts</h2>
+        <p class="text-sm text-neutral-500 mb-4">
           When enabled, automatically generate draft responses in HelpScout when a customer
           writes about an existing feature request. Drafts are saved for your review before sending.
         </p>
 
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-medium text-gray-900">Enable Auto-Drafts</p>
-            <p class="text-sm text-gray-500">
+            <p class="font-medium text-neutral-900">Enable Auto-Drafts</p>
+            <p class="text-sm text-neutral-500">
               Only applies to conversations matching existing feature requests
             </p>
           </div>
@@ -212,7 +215,7 @@ function cancelSharingChange() {
         <UiButton :loading="saving" @click="handleSave">
           Save Changes
         </UiButton>
-        <span v-if="saved" class="text-sm text-green-600">Saved!</span>
+        <span v-if="saved" class="text-sm text-accent-600">Saved!</span>
       </div>
     </div>
   </div>

@@ -11,20 +11,61 @@ export default <Config>{
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+      },
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+        // Refined neutral scale - slightly warm undertone
+        neutral: {
+          50: '#fafafa',
+          100: '#f5f5f5',
+          150: '#ededed',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0a0a0a',
         },
+        // Single accent color - dusty rose, used sparingly
+        accent: {
+          50: '#fdf2f4',
+          100: '#fce7eb',
+          200: '#f9d0d9',
+          300: '#f4a9ba',
+          400: '#ec7a95',
+          500: '#df5277',
+          600: '#c9325a',
+          700: '#a82548',
+          800: '#8c2240',
+          900: '#78203b',
+          950: '#420d1d',
+        },
+        // Keep primary as alias to accent for backward compatibility
+        primary: {
+          50: '#fdf2f4',
+          100: '#fce7eb',
+          200: '#f9d0d9',
+          300: '#f4a9ba',
+          400: '#ec7a95',
+          500: '#df5277',
+          600: '#c9325a',
+          700: '#a82548',
+          800: '#8c2240',
+          900: '#78203b',
+          950: '#420d1d',
+        },
+      },
+      boxShadow: {
+        'subtle': '0 1px 2px 0 rgb(0 0 0 / 0.03)',
+        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
+      },
+      borderRadius: {
+        'DEFAULT': '0.5rem',
       },
     },
   },

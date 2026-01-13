@@ -32,12 +32,14 @@ watch(
 </script>
 
 <template>
-  <LayoutAppHeader />
-  <div class="min-h-screen w-full bg-gray-50">
-    <div class="flex flex-1">
+  <div class="min-h-screen bg-neutral-50">
+    <LayoutAppHeader />
+    <div class="flex">
       <LayoutAppSidebar />
-      <main class="flex-1 p-6">
-        <slot />
+      <main class="flex-1 p-8">
+        <div class="max-w-6xl">
+          <slot />
+        </div>
       </main>
     </div>
   </div>

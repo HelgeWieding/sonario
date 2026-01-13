@@ -31,22 +31,22 @@ function getStatusVariant(status: string) {
       class="block"
     >
       <NuxtLink :to="`/${productSlug}/feature-requests/${request.id}`">
-        <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
+        <UiCard class="hover:border-neutral-300 transition-colors cursor-pointer">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium text-gray-900 truncate">{{ request.title }}</h4>
-              <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ request.description }}</p>
+              <h4 class="font-medium text-neutral-900 truncate">{{ request.title }}</h4>
+              <p class="text-sm text-neutral-500 mt-1 line-clamp-2">{{ request.description }}</p>
             </div>
             <div class="flex flex-col items-end gap-2">
               <UiBadge :variant="getStatusVariant(request.status)">
                 {{ STATUS_LABELS[request.status] }}
               </UiBadge>
-              <span class="text-xs text-gray-400">{{ CATEGORY_LABELS[request.category] }}</span>
+              <span class="text-xs text-neutral-400">{{ CATEGORY_LABELS[request.category] }}</span>
             </div>
           </div>
-          <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+          <div class="mt-3 flex items-center gap-4 text-sm text-neutral-500">
             <span>{{ request.feedbackCount }} feedback</span>
-            <span v-if="request.aiGenerated" class="text-primary-600">AI generated</span>
+            <span v-if="request.aiGenerated" class="text-accent-600 font-medium">AI generated</span>
           </div>
         </UiCard>
       </NuxtLink>

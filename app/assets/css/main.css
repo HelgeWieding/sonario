@@ -3,37 +3,241 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply text-neutral-900;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    @apply antialiased;
+    @apply bg-white font-sans;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /* Refined focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-neutral-900 ring-offset-2;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-accent-100 text-accent-900;
   }
 }
 
 @layer components {
+  /* ============================================
+     BUTTONS - Minimal, refined with accent sparingly
+     ============================================ */
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2 text-sm font-medium
+           rounded-lg transition-all duration-150
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Primary - Uses accent color */
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply bg-neutral-900 text-white
+           hover:bg-neutral-800
+           focus-visible:ring-neutral-900;
   }
 
+  /* Secondary - Subtle, outlined */
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500;
+    @apply bg-white text-neutral-700
+           border border-neutral-200
+           hover:bg-neutral-50 hover:border-neutral-300
+           focus-visible:ring-neutral-500;
   }
 
+  /* Ghost - Minimal */
+  .btn-ghost {
+    @apply bg-transparent text-neutral-600
+           hover:bg-neutral-100 hover:text-neutral-900
+           focus-visible:ring-neutral-500;
+  }
+
+  /* Danger - For destructive actions */
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    @apply bg-red-600 text-white
+           hover:bg-red-700
+           focus-visible:ring-red-500;
   }
 
+  /* Accent - For special emphasis (use sparingly) */
+  .btn-accent {
+    @apply bg-accent-600 text-white
+           hover:bg-accent-700
+           focus-visible:ring-accent-500;
+  }
+
+  /* ============================================
+     FORM ELEMENTS
+     ============================================ */
   .input {
-    @apply block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply block w-full px-3 py-2.5
+           text-sm text-neutral-900 placeholder:text-neutral-400
+           bg-white border border-neutral-200 rounded-lg
+           transition-colors duration-150
+           hover:border-neutral-300
+           focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent;
+  }
+
+  .input-error {
+    @apply border-red-300
+           focus:ring-red-500;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium text-neutral-700 mb-1.5;
   }
 
+  .label-hint {
+    @apply text-sm text-neutral-500 mt-1;
+  }
+
+  /* Select dropdown - use with inline SVG icon wrapper */
+  .select {
+    @apply block w-full px-3 py-2.5 pr-10
+           text-sm text-neutral-900
+           bg-white border border-neutral-200 rounded-lg
+           transition-colors duration-150
+           hover:border-neutral-300
+           focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+           appearance-none cursor-pointer;
+  }
+
+  /* ============================================
+     CARDS - Clean, minimal elevation
+     ============================================ */
   .card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+    @apply bg-white rounded-xl border border-neutral-200;
+  }
+
+  .card-elevated {
+    @apply bg-white rounded-xl border border-neutral-100 shadow-soft;
+  }
+
+  /* ============================================
+     BADGES - Refined, monochrome with accent
+     ============================================ */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5
+           text-xs font-medium rounded-full;
+  }
+
+  .badge-default {
+    @apply bg-neutral-100 text-neutral-700;
+  }
+
+  .badge-success {
+    @apply bg-accent-50 text-accent-700;
+  }
+
+  .badge-warning {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  .badge-error {
+    @apply bg-red-50 text-red-700;
+  }
+
+  .badge-info {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  /* ============================================
+     NAVIGATION
+     ============================================ */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2
+           text-sm font-medium text-neutral-600
+           rounded-lg transition-colors duration-150
+           hover:bg-neutral-100 hover:text-neutral-900;
+  }
+
+  .nav-link-active {
+    @apply bg-neutral-900 text-white
+           hover:bg-neutral-800 hover:text-white;
+  }
+
+  /* Subtle active state (for sub-items) */
+  .nav-link-active-subtle {
+    @apply bg-neutral-100 text-neutral-900 font-medium;
+  }
+
+  /* ============================================
+     DIVIDERS & SEPARATORS
+     ============================================ */
+  .divider {
+    @apply border-t border-neutral-100;
+  }
+
+  .divider-vertical {
+    @apply border-l border-neutral-200 h-full;
+  }
+
+  /* ============================================
+     TEXT UTILITIES
+     ============================================ */
+  .text-muted {
+    @apply text-neutral-500;
+  }
+
+  .text-subtle {
+    @apply text-neutral-400;
+  }
+
+  /* ============================================
+     SECTION HEADERS
+     ============================================ */
+  .section-title {
+    @apply text-xs font-medium text-neutral-400 uppercase tracking-wider;
+  }
+
+  /* ============================================
+     SKELETON LOADING
+     ============================================ */
+  .skeleton {
+    @apply bg-neutral-100 rounded animate-pulse;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar for a refined look */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.neutral.300') transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: theme('colors.neutral.300');
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.neutral.400');
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
   }
 }

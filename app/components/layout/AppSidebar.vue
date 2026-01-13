@@ -41,6 +41,10 @@ function isActive(href: string) {
   return route.path.startsWith(href);
 }
 
+function isExactActive(href: string) {
+  return route.path === href;
+}
+
 function isProductActive(slug: string) {
   return currentSlug.value === slug;
 }
@@ -76,80 +80,82 @@ function toggleSidebar() {
 <template>
   <aside
     :class="[
-      'bg-white border-r border-gray-200 min-h-[calc(100vh-65px)] transition-all duration-300 flex flex-col flex-shrink-0',
-      isCollapsed ? 'w-16' : 'w-64',
+      'bg-white border-r border-neutral-200 min-h-[calc(100vh-56px)] transition-all duration-200 flex flex-col flex-shrink-0',
+      isCollapsed ? 'w-16' : 'w-60',
     ]"
   >
     <!-- Navigation -->
-    <nav class="flex-1 p-2 space-y-1 overflow-hidden">
+    <nav class="flex-1 p-3 space-y-1 overflow-hidden scrollbar-thin">
       <!-- Dashboard -->
       <NuxtLink
         to="/dashboard"
         :class="[
-          isActive('/dashboard')
-            ? 'bg-blue-50 text-blue-700'
-            : 'text-gray-600 hover:bg-gray-50',
-          'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+          'relative flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
+          isExactActive('/dashboard')
+            ? 'text-neutral-900 bg-neutral-50'
+            : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
           isCollapsed ? 'justify-center' : '',
         ]"
         :title="isCollapsed ? 'Dashboard' : undefined"
       >
-        <span class="w-5 h-5 flex items-center justify-center flex-shrink-0">
+        <span
+          v-if="isExactActive('/dashboard')"
+          class="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-500 rounded-l"
+        />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5 flex-shrink-0"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+          />
+        </svg>
+        <span v-if="!isCollapsed" class="whitespace-nowrap">Dashboard</span>
+      </NuxtLink>
+
+      <!-- Profile section -->
+      <div>
+        <button
+          type="button"
+          :class="[
+            'relative w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
+            route.path.startsWith('/profile') || route.path.startsWith('/team')
+              ? 'text-neutral-900 bg-neutral-50'
+              : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+            isCollapsed ? 'justify-center' : '',
+          ]"
+          :title="isCollapsed ? 'Profile' : undefined"
+          @click="isCollapsed ? (isCollapsed = false) : toggleSection('Profile')"
+        >
+          <span
+            v-if="route.path.startsWith('/profile') || route.path.startsWith('/team')"
+            class="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-500 rounded-l"
+          />
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            class="w-5 h-5"
+            class="w-5 h-5 flex-shrink-0"
           >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
             />
           </svg>
-        </span>
-        <span v-if="!isCollapsed" class="whitespace-nowrap">Dashboard</span>
-      </NuxtLink>
-
-      <!-- Profile section (collapsible with Profile + Team) -->
-      <div>
-        <button
-          type="button"
-          :class="[
-            route.path.startsWith('/profile') || route.path.startsWith('/team')
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-gray-600 hover:bg-gray-50',
-            'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-            isCollapsed ? 'justify-center' : '',
-          ]"
-          :title="isCollapsed ? 'Profile' : undefined"
-          @click="
-            isCollapsed ? (isCollapsed = false) : toggleSection('Profile')
-          "
-        >
-          <span class="w-5 h-5 flex items-center justify-center flex-shrink-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-              />
-            </svg>
-          </span>
           <template v-if="!isCollapsed">
             <span class="flex-1 text-left whitespace-nowrap">Profile</span>
             <svg
               :class="[
-                'w-4 h-4 transition-transform',
+                'w-4 h-4 transition-transform duration-150',
                 isSectionExpanded('Profile') ? 'rotate-180' : '',
               ]"
               xmlns="http://www.w3.org/2000/svg"
@@ -170,15 +176,15 @@ function toggleSidebar() {
         <!-- Profile children -->
         <div
           v-if="!isCollapsed && isSectionExpanded('Profile')"
-          class="mt-1 ml-4 pl-4 border-l border-gray-200 space-y-1"
+          class="mt-1 ml-5 pl-3 border-l border-neutral-200 space-y-0.5"
         >
           <NuxtLink
             to="/profile"
             :class="[
+              'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
               isActive('/profile')
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700',
-              'block px-3 py-1.5 text-sm rounded-lg transition-colors whitespace-nowrap',
+                ? 'text-neutral-900 font-medium'
+                : 'text-neutral-500 hover:text-neutral-900',
             ]"
           >
             Profile
@@ -186,10 +192,10 @@ function toggleSidebar() {
           <NuxtLink
             to="/team"
             :class="[
+              'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
               isActive('/team')
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700',
-              'block px-3 py-1.5 text-sm rounded-lg transition-colors whitespace-nowrap',
+                ? 'text-neutral-900 font-medium'
+                : 'text-neutral-500 hover:text-neutral-900',
             ]"
           >
             Team
@@ -198,62 +204,51 @@ function toggleSidebar() {
       </div>
 
       <!-- Products section -->
-      <div class="border-t border-gray-200 my-2 pt-2">
+      <div class="pt-4 mt-4 border-t border-neutral-100">
         <div
           v-if="!isCollapsed"
-          class="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider"
+          class="px-3 pb-2 text-xs font-medium text-neutral-400 uppercase tracking-wider"
         >
-          Your Products
+          Products
         </div>
 
         <!-- Product list -->
-        <div v-for="product in products" :key="product.id" class="space-y-1">
+        <div v-for="product in products" :key="product.id" class="space-y-0.5">
           <!-- Product link -->
           <NuxtLink
             :to="`/${product.slug}/feature-requests`"
             :class="[
-              'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors text-left',
+              'relative w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 text-left',
               isProductActive(product.slug)
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-50',
+                ? 'text-neutral-900 bg-neutral-50'
+                : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
               isCollapsed ? 'justify-center' : '',
             ]"
             :title="isCollapsed ? product.name : undefined"
           >
             <span
-              class="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold"
+              v-if="isProductActive(product.slug)"
+              class="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-500 rounded-l"
+            />
+            <span
+              class="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md text-xs font-semibold bg-neutral-100 text-neutral-600"
             >
               {{ product.name.charAt(0).toUpperCase() }}
             </span>
             <template v-if="!isCollapsed">
               <div class="flex-1 min-w-0">
                 <span class="block truncate">{{ product.name }}</span>
-                <span class="text-xs text-gray-400"
-                  >{{ product.featureRequestCount || 0 }} requests</span
-                >
+                <span class="text-xs text-neutral-400">
+                  {{ product.featureRequestCount || 0 }} requests
+                </span>
               </div>
-              <svg
-                v-if="!isProductActive(product.slug)"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="w-4 h-4 text-gray-400"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                />
-              </svg>
             </template>
           </NuxtLink>
 
-          <!-- Product sub-navigation (shown when this product is active) -->
+          <!-- Product sub-navigation -->
           <div
             v-if="!isCollapsed && isProductActive(product.slug)"
-            class="ml-4 pl-4 border-l border-gray-200 space-y-1"
+            class="ml-5 pl-3 border-l border-neutral-200 space-y-0.5 mt-1"
           >
             <template
               v-for="navItem in getProductNavigation(product.slug)"
@@ -264,22 +259,18 @@ function toggleSidebar() {
                 <button
                   type="button"
                   :class="[
+                    'w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
                     isSectionActive(navItem)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700',
-                    'w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors',
+                      ? 'text-neutral-900 font-medium'
+                      : 'text-neutral-500 hover:text-neutral-900',
                   ]"
                   @click="toggleSection(`${product.slug}-${navItem.name}`)"
                 >
-                  <span class="flex-1 text-left whitespace-nowrap">{{
-                    navItem.name
-                  }}</span>
+                  <span class="flex-1 text-left">{{ navItem.name }}</span>
                   <svg
                     :class="[
-                      'w-3 h-3 transition-transform',
-                      isSectionExpanded(`${product.slug}-${navItem.name}`)
-                        ? 'rotate-180'
-                        : '',
+                      'w-3.5 h-3.5 transition-transform duration-150',
+                      isSectionExpanded(`${product.slug}-${navItem.name}`) ? 'rotate-180' : '',
                     ]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -298,17 +289,17 @@ function toggleSidebar() {
                 <!-- Settings children -->
                 <div
                   v-if="isSectionExpanded(`${product.slug}-${navItem.name}`)"
-                  class="mt-1 ml-3 pl-3 border-l border-gray-200 space-y-1"
+                  class="ml-3 pl-3 border-l border-neutral-100 space-y-0.5 mt-0.5"
                 >
                   <NuxtLink
                     v-for="child in navItem.children"
                     :key="child.href"
                     :to="child.href"
                     :class="[
+                      'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
                       isActive(child.href)
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700',
-                      'block px-3 py-1.5 text-sm rounded-lg transition-colors whitespace-nowrap',
+                        ? 'text-neutral-900 font-medium'
+                        : 'text-neutral-500 hover:text-neutral-900',
                     ]"
                   >
                     {{ child.name }}
@@ -321,10 +312,10 @@ function toggleSidebar() {
                 v-else
                 :to="navItem.href"
                 :class="[
+                  'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
                   isActive(navItem.href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700',
-                  'block px-3 py-1.5 text-sm rounded-lg transition-colors whitespace-nowrap',
+                    ? 'text-neutral-900 font-medium'
+                    : 'text-neutral-500 hover:text-neutral-900',
                 ]"
               >
                 {{ navItem.name }}
@@ -336,16 +327,18 @@ function toggleSidebar() {
     </nav>
 
     <!-- Collapse toggle -->
-    <div class="p-2 border-t border-gray-200">
+    <div class="p-3 border-t border-neutral-100">
       <button
         type="button"
-        class="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-lg transition-colors"
-        :class="isCollapsed ? 'justify-center' : ''"
+        :class="[
+          'w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 rounded-lg transition-colors duration-150',
+          isCollapsed ? 'justify-center' : '',
+        ]"
         @click="toggleSidebar"
       >
         <svg
           :class="[
-            'w-5 h-5 transition-transform',
+            'w-5 h-5 transition-transform duration-150',
             isCollapsed ? 'rotate-180' : '',
           ]"
           xmlns="http://www.w3.org/2000/svg"

@@ -1,7 +1,7 @@
 import type { ProductWithStats } from "~~/shared/types";
 
 export function useProducts() {
-  const { orgId } = useAuth();
+  const router = useRouter();
   const products = useState<ProductWithStats[]>("products-list", () => []);
   const selectedProduct = useState<ProductWithStats | null>(
     "selected-product",
@@ -31,6 +31,7 @@ export function useProducts() {
   async function fetchProducts() {
     isLoading.value = true;
     const headers = getRequestHeaders();
+    const { orgId } = useAuth();
     const currentOrgId = orgId.value || null;
 
     // If org context changed, clear the current selection immediately
@@ -49,7 +50,6 @@ export function useProducts() {
       error.value = null;
       errorStatus.value = null;
       productsOrgContext.value = currentOrgId;
-      console.log("products", products.value);
 
       // Clear selection if current product no longer exists in list
       if (selectedProduct.value) {
@@ -76,7 +76,7 @@ export function useProducts() {
 
     // If no products after fetch (and not a 401 error), redirect to create product
     if (products.value.length === 0 && errorStatus.value !== 401) {
-      await navigateTo("/onboarding/create-product");
+      await router.push("/onboarding/create-product");
       return true; // Redirect happened
     }
 
@@ -86,6 +86,7 @@ export function useProducts() {
   // Refresh products list (force re-fetch)
   async function refreshProducts() {
     const headers = getRequestHeaders();
+    const { orgId } = useAuth();
     const currentOrgId = orgId.value || null;
 
     try {

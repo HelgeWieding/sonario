@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clerkClient } from "@clerk/nuxt/server";
+import { clerkClient, getAuth } from "@clerk/nuxt/server";
 import { getOrCreateUser } from "../../utils/auth";
 import { productRepository } from "../../repositories/product.repository";
 import { organizationRepository } from "../../repositories/organization.repository";
@@ -14,7 +14,7 @@ const createProductSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = await getOrCreateUser(event);
-  const auth = await u(event);
+  const { orgId } = getAuth(event);
   const body = await readBody(event);
 
   const parsed = createProductSchema.safeParse(body);
@@ -24,27 +24,26 @@ export default defineEventHandler(async (event) => {
 
   const { name, description, organizationId } = parsed.data!;
 
-  // If creating for an organization, validate access
-  if (organizationId) {
-    // User must be in the organization to create a product for it
-    if (auth.orgId !== organizationId) {
-      badRequest(
-        "Cannot create product for organization you are not active in"
-      );
-    }
+  // User must be in the organization to create a product for it
+  if (!orgId) {
+    badRequest("Cannot create product without an organization");
+  }
 
-    // Ensure the organization exists locally
-    const client = clerkClient(event);
-    const clerkOrg = await client.organizations.getOrganization({
-      organizationId,
-    });
+  // Ensure the organization exists locally
+  const client = clerkClient(event);
+  const clerkOrg = await client.organizations.getOrganization({
+    organizationId: orgId,
+  });
 
-    await organizationRepository.upsert({
-      clerkId: organizationId,
-      name: clerkOrg.name,
-      slug: clerkOrg.slug ?? null,
-      imageUrl: clerkOrg.imageUrl ?? null,
-    });
+  await organizationRepository.upsert({
+    clerkId: orgId,
+    name: clerkOrg.name,
+    slug: clerkOrg.slug ?? null,
+    imageUrl: clerkOrg.imageUrl ?? null,
+  });
+
+  if (!user) {
+    badRequest("User not found");
   }
 
   // Generate unique slug (context-aware)

@@ -46,6 +46,12 @@ const newFeedback = ref({
   senderName: '',
 })
 
+// Link to feature request dialog state
+const showLinkDialog = ref(false)
+const selectedFeedbackId = ref<string | null>(null)
+const selectedFeatureRequestId = ref('')
+const linking = ref(false)
+
 const isFormValid = computed(() =>
   product.value && newFeedback.value.content.trim()
 )
@@ -192,6 +198,41 @@ async function handleCreateFeedback() {
   }
 }
 
+async function openLinkDialog(feedback: FeedbackWithRelations) {
+  selectedFeedbackId.value = feedback.id
+  selectedFeatureRequestId.value = feedback.featureRequest?.id || ''
+  showLinkDialog.value = true
+  if (featureRequests.value.length === 0) {
+    await loadFeatureRequests()
+  }
+}
+
+function closeLinkDialog() {
+  showLinkDialog.value = false
+  selectedFeedbackId.value = null
+  selectedFeatureRequestId.value = ''
+}
+
+async function handleLinkToFeatureRequest() {
+  if (!selectedFeedbackId.value) return
+
+  linking.value = true
+  try {
+    await $fetch(`/api/${route.params.slug}/feedback/${selectedFeedbackId.value}`, {
+      method: "PATCH",
+      body: {
+        featureRequestId: selectedFeatureRequestId.value || null,
+      },
+    });
+    closeLinkDialog()
+    await loadFeedback(pagination.value.page)
+  } catch (error) {
+    console.error("Failed to link feedback to feature request:", error);
+  } finally {
+    linking.value = false
+  }
+}
+
 onMounted(() => {
   loadFeedback()
 })
@@ -297,6 +338,24 @@ watch([sentimentFilter], () => {
                 >
                   {{ SENTIMENT_LABELS[item.sentiment as keyof typeof SENTIMENT_LABELS] || item.sentiment }}
                 </span>
+                <!-- Link to feature request button -->
+                <button
+                  v-if="item.featureRequest"
+                  type="button"
+                  class="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-900 hover:bg-gray-50 max-w-[150px] truncate"
+                  :title="item.featureRequest.title"
+                  @click.stop="openLinkDialog(item)"
+                >
+                  {{ item.featureRequest.title }}
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="px-2 py-1 text-xs font-medium rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 whitespace-nowrap"
+                  @click.stop="openLinkDialog(item)"
+                >
+                  Add to feature request
+                </button>
                 <span
                   v-if="item.aiExtracted"
                   class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 whitespace-nowrap"
@@ -433,6 +492,31 @@ watch([sentimentFilter], () => {
           </UiButton>
           <UiButton type="submit" :loading="creating" :disabled="!isFormValid">
             Add Feedback
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
+
+    <!-- Link to Feature Request Modal -->
+    <UiModal :open="showLinkDialog" title="Link to Feature Request" @close="closeLinkDialog">
+      <form @submit.prevent="handleLinkToFeatureRequest" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Feature Request</label>
+          <UiSelect
+            v-model="selectedFeatureRequestId"
+            :options="featureRequestOptions"
+            :disabled="loadingRequests"
+            placeholder="Select a feature request"
+          />
+          <p class="text-xs text-gray-500 mt-1">Select a feature request to link this feedback to, or choose "None" to unlink.</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeLinkDialog">
+            Cancel
+          </UiButton>
+          <UiButton type="submit" :loading="linking">
+            Save
           </UiButton>
         </div>
       </form>

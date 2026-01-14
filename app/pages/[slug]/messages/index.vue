@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { ProcessedMessage } from "~~/server/db/schema/processed-messages";
+import type { FeatureRequest } from "~~/shared/types";
+import { SENTIMENTS } from "~~/shared/constants/enums";
 
 definePageMeta({
   middleware: ["auth"],
@@ -26,17 +28,45 @@ const sourceFilter = ref('')
 const featureRequestFilter = ref('')
 const expandedMessages = ref<Set<string>>(new Set())
 
+// Add as feedback dialog state
+const showAddFeedbackDialog = ref(false)
+const creatingFeedback = ref(false)
+const featureRequests = ref<FeatureRequest[]>([])
+const loadingRequests = ref(false)
+const newFeedback = ref({
+  featureRequestId: '',
+  content: '',
+  sentiment: 'neutral' as typeof SENTIMENTS[number],
+  senderEmail: '',
+  senderName: '',
+})
+
 const sourceOptions = [
   { value: '', label: 'All Sources' },
   { value: 'gmail', label: 'Gmail' },
   { value: 'helpscout', label: 'Help Scout' },
 ]
 
-const featureRequestOptions = [
+const featureRequestFilterOptions = [
   { value: '', label: 'All Messages' },
   { value: 'true', label: 'Feature Requests Only' },
   { value: 'false', label: 'Non-Feature Requests' },
 ]
+
+const feedbackFeatureRequestOptions = computed(() => [
+  { value: '', label: 'None (standalone feedback)' },
+  ...featureRequests.value.map(r => ({ value: r.id, label: r.title })),
+])
+
+const formSentimentOptions = [
+  { value: 'positive', label: 'Positive' },
+  { value: 'neutral', label: 'Neutral' },
+  { value: 'negative', label: 'Negative' },
+]
+
+const isFormValid = computed(() =>
+  product.value && newFeedback.value.content.trim()
+)
 
 async function loadMessages(page = 1) {
   if (!product.value) return;
@@ -112,6 +142,73 @@ function goToPage(page: number) {
   }
 }
 
+async function loadFeatureRequests() {
+  if (!product.value) {
+    featureRequests.value = [];
+    return;
+  }
+  loadingRequests.value = true;
+  try {
+    const { data } = await $fetch<{ data: FeatureRequest[] }>(
+      `/api/${route.params.slug}/feature-requests?productId=${product.value.id}`
+    );
+    featureRequests.value = data;
+  } catch (error) {
+    console.error("Failed to load feature requests:", error);
+    featureRequests.value = [];
+  } finally {
+    loadingRequests.value = false;
+  }
+}
+
+async function openAddAsFeedbackDialog(message: ProcessedMessage) {
+  newFeedback.value = {
+    featureRequestId: '',
+    content: message.content || '',
+    sentiment: 'neutral',
+    senderEmail: message.senderEmail || '',
+    senderName: message.senderName || '',
+  }
+  showAddFeedbackDialog.value = true
+  if (featureRequests.value.length === 0) {
+    await loadFeatureRequests()
+  }
+}
+
+function closeAddFeedbackDialog() {
+  showAddFeedbackDialog.value = false
+  newFeedback.value = {
+    featureRequestId: '',
+    content: '',
+    sentiment: 'neutral',
+    senderEmail: '',
+    senderName: '',
+  }
+}
+
+async function handleCreateFeedback() {
+  if (!isFormValid.value || !product.value) return;
+
+  creatingFeedback.value = true;
+  try {
+    await $fetch(`/api/${route.params.slug}/feedback`, {
+      method: "POST",
+      body: {
+        featureRequestId: newFeedback.value.featureRequestId || undefined,
+        content: newFeedback.value.content.trim(),
+        sentiment: newFeedback.value.sentiment,
+        senderEmail: newFeedback.value.senderEmail.trim() || undefined,
+        senderName: newFeedback.value.senderName.trim() || undefined,
+      },
+    });
+    closeAddFeedbackDialog();
+  } catch (error) {
+    console.error("Failed to create feedback:", error);
+  } finally {
+    creatingFeedback.value = false;
+  }
+}
+
 onMounted(() => {
   loadMessages()
 })
@@ -142,7 +239,7 @@ watch([sourceFilter, featureRequestFilter], () => {
       <div class="w-56 flex-shrink-0">
         <UiSelect
           v-model="featureRequestFilter"
-          :options="featureRequestOptions"
+          :options="featureRequestFilterOptions"
           placeholder="Filter by type"
         />
       </div>
@@ -243,13 +340,24 @@ watch([sourceFilter, featureRequestFilter], () => {
               </div>
 
               <!-- Links if feature request was created -->
-              <div v-if="message.featureRequestId || message.feedbackId" class="text-sm">
+              <div v-if="message.featureRequestId || message.feedbackId" class="text-sm mb-3">
                 <span v-if="message.featureRequestId" class="text-blue-600">
                   Created feature request
                 </span>
                 <span v-else-if="message.feedbackId" class="text-blue-600">
                   Added as feedback
                 </span>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2">
+                <UiButton
+                  size="sm"
+                  variant="secondary"
+                  @click.stop="openAddAsFeedbackDialog(message)"
+                >
+                  Add as Feedback
+                </UiButton>
               </div>
             </div>
           </div>
@@ -284,5 +392,70 @@ watch([sourceFilter, featureRequestFilter], () => {
         </div>
       </div>
       </template>
+
+    <!-- Add as Feedback Modal -->
+    <UiModal :open="showAddFeedbackDialog" title="Add as Feedback" @close="closeAddFeedbackDialog">
+      <form @submit.prevent="handleCreateFeedback" class="space-y-4">
+        <!-- Content -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Feedback Content</label>
+          <textarea
+            v-model="newFeedback.content"
+            rows="4"
+            placeholder="Enter the feedback..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Sentiment -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Sentiment</label>
+          <UiSelect
+            v-model="newFeedback.sentiment"
+            :options="formSentimentOptions"
+          />
+        </div>
+
+        <!-- Feature Request Link -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Link to Feature Request</label>
+          <UiSelect
+            v-model="newFeedback.featureRequestId"
+            :options="feedbackFeatureRequestOptions"
+            :disabled="loadingRequests"
+            placeholder="Select a feature request (optional)"
+          />
+          <p class="text-xs text-gray-500 mt-1">Optionally link this feedback to an existing feature request</p>
+        </div>
+
+        <!-- Sender Info -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
+            <UiInput
+              v-model="newFeedback.senderName"
+              placeholder="Optional"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Email</label>
+            <UiInput
+              v-model="newFeedback.senderEmail"
+              type="email"
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeAddFeedbackDialog">
+            Cancel
+          </UiButton>
+          <UiButton type="submit" :loading="creatingFeedback" :disabled="!isFormValid">
+            Add Feedback
+          </UiButton>
+        </div>
+      </form>
+    </UiModal>
   </div>
 </template>

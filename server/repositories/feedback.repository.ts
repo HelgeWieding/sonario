@@ -112,6 +112,19 @@ class FeedbackRepository {
   }
 
   /**
+   * Update the feature request link for feedback
+   */
+  async updateFeatureRequestId(id: string, featureRequestId: string | null): Promise<Feedback | null> {
+    const [feedback] = await this.db
+      .update(schema.feedback)
+      .set({ featureRequestId })
+      .where(eq(schema.feedback.id, id))
+      .returning()
+
+    return feedback ?? null
+  }
+
+  /**
    * Find all feedback for products with pagination and relations
    */
   async findAllByProductIds(

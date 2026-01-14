@@ -317,7 +317,7 @@ watch([sourceFilter, featureRequestFilter], () => {
                 </span>
                 <span
                   v-if="message.isFeatureRequest"
-                  class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 whitespace-nowrap"
+                  class="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-900 whitespace-nowrap"
                 >
                   Feature Request
                 </span>
@@ -350,7 +350,7 @@ watch([sourceFilter, featureRequestFilter], () => {
               </div>
 
               <!-- Actions -->
-              <div class="flex items-center gap-2">
+              <div v-if="!message.feedbackId" class="flex items-center gap-2">
                 <UiButton
                   size="sm"
                   variant="secondary"

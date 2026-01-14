@@ -3,6 +3,7 @@ import { getAuthContext } from "../../../utils/auth";
 import { productRepository } from "../../../repositories/product.repository";
 import { featureRequestRepository } from "../../../repositories/feature-request.repository";
 import { feedbackRepository } from "../../../repositories/feedback.repository";
+import { processedMessageRepository } from "../../../repositories/processed-message.repository";
 import { badRequest, notFound, handleDbError } from "../../../utils/errors";
 import { SENTIMENTS } from "~~/shared/constants";
 
@@ -12,6 +13,7 @@ const createFeedbackSchema = z.object({
   sentiment: z.enum(SENTIMENTS).optional(),
   senderEmail: z.string().email().optional().or(z.literal("")),
   senderName: z.string().max(100).optional(),
+  sourceMessageId: z.string().uuid().optional(),
 });
 
 export default defineEventHandler(async (event) => {
@@ -71,6 +73,13 @@ export default defineEventHandler(async (event) => {
       await featureRequestRepository.incrementFeedbackCount(
         result.data!.featureRequestId
       );
+    }
+
+    // Update the source message with the feedback ID if provided
+    if (result.data!.sourceMessageId) {
+      await processedMessageRepository.update(result.data!.sourceMessageId, {
+        feedbackId: feedback.id,
+      });
     }
 
     return { data: feedback };

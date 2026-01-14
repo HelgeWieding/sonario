@@ -33,6 +33,7 @@ const showAddFeedbackDialog = ref(false)
 const creatingFeedback = ref(false)
 const featureRequests = ref<FeatureRequest[]>([])
 const loadingRequests = ref(false)
+const sourceMessageId = ref<string | null>(null)
 const newFeedback = ref({
   featureRequestId: '',
   content: '',
@@ -162,6 +163,7 @@ async function loadFeatureRequests() {
 }
 
 async function openAddAsFeedbackDialog(message: ProcessedMessage) {
+  sourceMessageId.value = message.id
   newFeedback.value = {
     featureRequestId: '',
     content: message.content || '',
@@ -177,6 +179,7 @@ async function openAddAsFeedbackDialog(message: ProcessedMessage) {
 
 function closeAddFeedbackDialog() {
   showAddFeedbackDialog.value = false
+  sourceMessageId.value = null
   newFeedback.value = {
     featureRequestId: '',
     content: '',
@@ -199,9 +202,11 @@ async function handleCreateFeedback() {
         sentiment: newFeedback.value.sentiment,
         senderEmail: newFeedback.value.senderEmail.trim() || undefined,
         senderName: newFeedback.value.senderName.trim() || undefined,
+        sourceMessageId: sourceMessageId.value || undefined,
       },
     });
     closeAddFeedbackDialog();
+    await loadMessages(pagination.value.page);
   } catch (error) {
     console.error("Failed to create feedback:", error);
   } finally {

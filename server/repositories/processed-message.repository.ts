@@ -90,6 +90,24 @@ class ProcessedMessageRepository {
   }
 
   /**
+   * Find a message by ID
+   */
+  async findById(id: string): Promise<ProcessedMessage | null> {
+    return await this.db.query.processedMessages.findFirst({
+      where: eq(schema.processedMessages.id, id),
+    }) ?? null
+  }
+
+  /**
+   * Delete a processed message
+   */
+  async delete(id: string): Promise<void> {
+    await this.db
+      .delete(schema.processedMessages)
+      .where(eq(schema.processedMessages.id, id))
+  }
+
+  /**
    * Find all messages for multiple products with pagination and filters
    */
   async findAllByProductIds(

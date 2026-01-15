@@ -42,6 +42,11 @@ const newFeedback = ref({
   senderName: '',
 })
 
+// Delete dialog state
+const showDeleteDialog = ref(false)
+const messageToDelete = ref<ProcessedMessage | null>(null)
+const deleting = ref(false)
+
 const sourceOptions = [
   { value: '', label: 'All Sources' },
   { value: 'gmail', label: 'Gmail' },
@@ -214,6 +219,33 @@ async function handleCreateFeedback() {
   }
 }
 
+function openDeleteDialog(message: ProcessedMessage) {
+  messageToDelete.value = message
+  showDeleteDialog.value = true
+}
+
+function closeDeleteDialog() {
+  showDeleteDialog.value = false
+  messageToDelete.value = null
+}
+
+async function handleDeleteMessage() {
+  if (!messageToDelete.value) return
+
+  deleting.value = true
+  try {
+    await $fetch(`/api/${route.params.slug}/messages/${messageToDelete.value.id}`, {
+      method: "DELETE",
+    });
+    closeDeleteDialog()
+    await loadMessages(pagination.value.page)
+  } catch (error) {
+    console.error("Failed to delete message:", error);
+  } finally {
+    deleting.value = false
+  }
+}
+
 onMounted(() => {
   loadMessages()
 })
@@ -355,13 +387,21 @@ watch([sourceFilter, featureRequestFilter], () => {
               </div>
 
               <!-- Actions -->
-              <div v-if="!message.feedbackId" class="flex items-center gap-2">
+              <div class="flex items-center gap-2">
                 <UiButton
+                  v-if="!message.feedbackId"
                   size="sm"
                   variant="secondary"
                   @click.stop="openAddAsFeedbackDialog(message)"
                 >
                   Add as Feedback
+                </UiButton>
+                <UiButton
+                  size="sm"
+                  variant="danger"
+                  @click.stop="openDeleteDialog(message)"
+                >
+                  Delete
                 </UiButton>
               </div>
             </div>
@@ -461,6 +501,29 @@ watch([sourceFilter, featureRequestFilter], () => {
           </UiButton>
         </div>
       </form>
+    </UiModal>
+
+    <!-- Delete Confirmation Modal -->
+    <UiModal :open="showDeleteDialog" title="Delete Message" @close="closeDeleteDialog">
+      <div class="space-y-4">
+        <p class="text-gray-600">
+          Are you sure you want to delete this message? This action cannot be undone.
+        </p>
+        <div v-if="messageToDelete" class="bg-gray-50 rounded-lg p-3">
+          <p class="font-medium text-gray-900 text-sm">{{ messageToDelete.subject || '(No subject)' }}</p>
+          <p v-if="messageToDelete.content" class="text-sm text-gray-700 mt-1">
+            {{ messageToDelete.content.length > 100 ? messageToDelete.content.slice(0, 100) + '...' : messageToDelete.content }}
+          </p>
+        </div>
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeDeleteDialog">
+            Cancel
+          </UiButton>
+          <UiButton variant="danger" :loading="deleting" @click="handleDeleteMessage">
+            Delete
+          </UiButton>
+        </div>
+      </div>
     </UiModal>
   </div>
 </template>

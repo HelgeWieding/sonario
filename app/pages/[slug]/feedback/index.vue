@@ -52,6 +52,11 @@ const selectedFeedbackId = ref<string | null>(null)
 const selectedFeatureRequestId = ref('')
 const linking = ref(false)
 
+// Delete dialog state
+const showDeleteDialog = ref(false)
+const feedbackToDelete = ref<FeedbackWithRelations | null>(null)
+const deleting = ref(false)
+
 const isFormValid = computed(() =>
   product.value && newFeedback.value.content.trim()
 )
@@ -233,6 +238,33 @@ async function handleLinkToFeatureRequest() {
   }
 }
 
+function openDeleteDialog(item: FeedbackWithRelations) {
+  feedbackToDelete.value = item
+  showDeleteDialog.value = true
+}
+
+function closeDeleteDialog() {
+  showDeleteDialog.value = false
+  feedbackToDelete.value = null
+}
+
+async function handleDeleteFeedback() {
+  if (!feedbackToDelete.value) return
+
+  deleting.value = true
+  try {
+    await $fetch(`/api/${route.params.slug}/feedback/${feedbackToDelete.value.id}`, {
+      method: "DELETE",
+    });
+    closeDeleteDialog()
+    await loadFeedback(pagination.value.page)
+  } catch (error) {
+    console.error("Failed to delete feedback:", error);
+  } finally {
+    deleting.value = false
+  }
+}
+
 onMounted(() => {
   loadFeedback()
 })
@@ -398,6 +430,17 @@ watch([sentimentFilter], () => {
                   {{ item.contact.name || item.contact.email }}
                 </NuxtLink>
               </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+                <UiButton
+                  size="sm"
+                  variant="danger"
+                  @click.stop="openDeleteDialog(item)"
+                >
+                  Delete
+                </UiButton>
+              </div>
             </div>
           </div>
         </div>
@@ -520,6 +563,26 @@ watch([sentimentFilter], () => {
           </UiButton>
         </div>
       </form>
+    </UiModal>
+
+    <!-- Delete Confirmation Modal -->
+    <UiModal :open="showDeleteDialog" title="Delete Feedback" @close="closeDeleteDialog">
+      <div class="space-y-4">
+        <p class="text-gray-600">
+          Are you sure you want to delete this feedback? This action cannot be undone.
+        </p>
+        <div v-if="feedbackToDelete" class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
+          {{ feedbackToDelete.content.length > 100 ? feedbackToDelete.content.slice(0, 100) + '...' : feedbackToDelete.content }}
+        </div>
+        <div class="flex justify-end gap-2 pt-4">
+          <UiButton type="button" variant="secondary" @click="closeDeleteDialog">
+            Cancel
+          </UiButton>
+          <UiButton variant="danger" :loading="deleting" @click="handleDeleteFeedback">
+            Delete
+          </UiButton>
+        </div>
+      </div>
     </UiModal>
   </div>
 </template>

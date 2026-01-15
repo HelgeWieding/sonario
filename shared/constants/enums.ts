@@ -33,7 +33,7 @@ export const SENTIMENT_LABELS: Record<Sentiment, string> = {
 }
 
 export const STATUSES = [
-  'new',
+  'untriaged',
   'reviewing',
   'planned',
   'in_progress',
@@ -44,7 +44,7 @@ export const STATUSES = [
 export type Status = typeof STATUSES[number]
 
 export const STATUS_LABELS: Record<Status, string> = {
-  new: 'New',
+  untriaged: 'Untriaged',
   reviewing: 'Reviewing',
   planned: 'Planned',
   in_progress: 'In Progress',

@@ -15,7 +15,7 @@ export const categoryEnum = pgEnum('category', [
 ])
 
 export const statusEnum = pgEnum('status', [
-  'new',
+  'untriaged',
   'reviewing',
   'planned',
   'in_progress',
@@ -30,7 +30,7 @@ export const featureRequests = pgTable('feature_requests', {
   description: text('description').notNull(),
   originalContent: text('original_content'), // Original email body from user
   category: categoryEnum('category').notNull().default('feature'),
-  status: statusEnum('status').notNull().default('new'),
+  status: statusEnum('status').notNull().default('untriaged'),
   feedbackCount: integer('feedback_count').notNull().default(1),
   aiGenerated: boolean('ai_generated').notNull().default(false),
   sourceEmailId: text('source_email_id'), // Original Gmail message ID

@@ -1,11 +1,9 @@
 import { eq, count, and, gte, inArray } from "drizzle-orm";
 import { getDb, schema } from "../../db";
-import { getOrCreateUser } from "../../utils/auth";
 import type { DashboardStats } from "~~/shared/types";
 import { productRepository } from "~~/server/repositories/product.repository";
 
 export default defineEventHandler(async (event) => {
-  const user = await getOrCreateUser(event);
   const db = getDb();
 
   // Get all products

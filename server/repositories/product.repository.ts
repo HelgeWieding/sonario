@@ -71,7 +71,7 @@ class ProductRepository {
       .where(
         and(
           eq(schema.featureRequests.productId, product.id),
-          eq(schema.featureRequests.status, "new")
+          eq(schema.featureRequests.status, "untriaged")
         )
       );
 
@@ -142,7 +142,7 @@ class ProductRepository {
       .where(
         and(
           eq(schema.featureRequests.productId, productId),
-          eq(schema.featureRequests.status, "new")
+          eq(schema.featureRequests.status, "untriaged")
         )
       );
 
@@ -176,7 +176,7 @@ class ProductRepository {
       .where(
         and(
           eq(schema.featureRequests.productId, product.id),
-          eq(schema.featureRequests.status, "new")
+          eq(schema.featureRequests.status, "untriaged")
         )
       );
 
@@ -218,7 +218,7 @@ class ProductRepository {
       .where(
         and(
           eq(schema.featureRequests.productId, product.id),
-          eq(schema.featureRequests.status, "new")
+          eq(schema.featureRequests.status, "untriaged")
         )
       );
 

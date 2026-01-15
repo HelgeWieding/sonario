@@ -54,6 +54,12 @@ const updating = ref(false);
 const showDeleteModal = ref(false);
 const showFeedbackModal = ref(false);
 
+// Status options for UiSelect
+const statusOptions = STATUSES.map(s => ({
+  value: s,
+  label: STATUS_LABELS[s]
+}));
+
 const feedbackForm = reactive({
   content: "",
   senderEmail: "",
@@ -159,12 +165,12 @@ async function handleDeleteFeedback(feedbackId: string) {
       </div>
 
       <div class="grid gap-6 lg:grid-cols-3">
-        <!-- Main Content -->
+        <!-- Main Content Card -->
         <div class="lg:col-span-2">
-          <UiCard>
+          <UiCard class="h-full">
             <div class="flex items-start justify-between mb-4">
               <div>
-                <h1 class="text-xl font-bold text-gray-900">
+                <h1 class="text-xl font-bold text-neutral-900">
                   {{ request.title }}
                 </h1>
                 <div class="flex items-center gap-2 mt-2">
@@ -185,13 +191,13 @@ async function handleDeleteFeedback(feedbackId: string) {
             </div>
 
             <div class="prose max-w-none">
-              <p class="text-gray-700 whitespace-pre-wrap">
+              <p class="text-neutral-700 whitespace-pre-wrap">
                 {{ request.description }}
               </p>
             </div>
 
-            <div class="mt-6 pt-6 border-t border-gray-200">
-              <p class="text-sm text-gray-500">
+            <div class="mt-6 pt-6 border-t border-neutral-200">
+              <p class="text-sm text-neutral-500">
                 Created {{ new Date(request.createdAt).toLocaleDateString() }}
                 <span v-if="request.sourceEmailId" class="ml-2"
                   >from email</span
@@ -199,90 +205,28 @@ async function handleDeleteFeedback(feedbackId: string) {
               </p>
             </div>
           </UiCard>
-
-          <!-- Feedback Section -->
-          <div class="mt-6">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-semibold text-gray-900">
-                Feedback ({{ request.feedback.length }})
-              </h2>
-              <UiButton size="sm" @click="showFeedbackModal = true">
-                Add Feedback
-              </UiButton>
-            </div>
-
-            <!-- Feedback List -->
-            <div class="space-y-3">
-              <UiCard v-for="fb in request.feedback" :key="fb.id">
-                <div class="flex items-start justify-between">
-                  <div class="flex-1">
-                    <p class="text-gray-700">{{ fb.content }}</p>
-                    <div
-                      class="mt-2 flex items-center gap-2 text-sm text-gray-500"
-                    >
-                      <span v-if="fb.senderEmail">{{
-                        fb.senderName || fb.senderEmail
-                      }}</span>
-                      <span>{{
-                        new Date(fb.createdAt).toLocaleDateString()
-                      }}</span>
-                      <UiBadge
-                        v-if="fb.sentiment"
-                        size="sm"
-                        :variant="
-                          fb.sentiment === 'positive'
-                            ? 'success'
-                            : fb.sentiment === 'negative'
-                            ? 'error'
-                            : 'default'
-                        "
-                      >
-                        {{ fb.sentiment }}
-                      </UiBadge>
-                      <UiBadge v-if="fb.aiExtracted" size="sm"
-                        >AI Extracted</UiBadge
-                      >
-                    </div>
-                  </div>
-                  <UiButton
-                    variant="ghost"
-                    size="sm"
-                    @click="handleDeleteFeedback(fb.id)"
-                  >
-                    Remove
-                  </UiButton>
-                </div>
-              </UiCard>
-            </div>
-          </div>
         </div>
 
         <!-- Sidebar -->
         <div>
-          <UiCard>
-            <h3 class="font-semibold text-gray-900 mb-4">Status</h3>
-            <select
-              :value="request.status"
-              class="input"
+          <UiCard class="h-full">
+            <h3 class="font-semibold text-neutral-900 mb-4">Status</h3>
+            <UiSelect
+              :model-value="request.status"
+              :options="statusOptions"
               :disabled="updating"
-              @change="
-                handleStatusChange(($event.target as HTMLSelectElement).value)
-              "
-            >
-              <option v-for="status in STATUSES" :key="status" :value="status">
-                {{ STATUS_LABELS[status] }}
-              </option>
-            </select>
+              @update:model-value="handleStatusChange"
+            />
 
             <div class="mt-6">
-              <h3 class="font-semibold text-gray-900 mb-2">Statistics</h3>
+              <h3 class="font-semibold text-neutral-900 mb-2">Statistics</h3>
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                  <span class="text-gray-500">Feedback Count</span>
+                  <span class="text-neutral-500">Feedback Count</span>
                   <span class="font-medium">{{ request.feedbackCount }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-gray-500">Category</span>
+                  <span class="text-neutral-500">Category</span>
                   <span class="font-medium">{{
                     CATEGORY_LABELS[request.category]
                   }}</span>
@@ -290,6 +234,62 @@ async function handleDeleteFeedback(feedbackId: string) {
               </div>
             </div>
           </UiCard>
+        </div>
+
+        <!-- Feedback Section - separate row -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-neutral-900">
+              Feedback ({{ request.feedback.length }})
+            </h2>
+            <UiButton size="sm" @click="showFeedbackModal = true">
+              Add Feedback
+            </UiButton>
+          </div>
+
+          <!-- Feedback List -->
+          <div class="space-y-3">
+            <UiCard v-for="fb in request.feedback" :key="fb.id">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <p class="text-neutral-700">{{ fb.content }}</p>
+                  <div
+                    class="mt-2 flex items-center gap-2 text-sm text-neutral-500"
+                  >
+                    <span v-if="fb.senderEmail">{{
+                      fb.senderName || fb.senderEmail
+                    }}</span>
+                    <span>{{
+                      new Date(fb.createdAt).toLocaleDateString()
+                    }}</span>
+                    <UiBadge
+                      v-if="fb.sentiment"
+                      size="sm"
+                      :variant="
+                        fb.sentiment === 'positive'
+                          ? 'success'
+                          : fb.sentiment === 'negative'
+                          ? 'error'
+                          : 'default'
+                      "
+                    >
+                      {{ fb.sentiment }}
+                    </UiBadge>
+                    <UiBadge v-if="fb.aiExtracted" size="sm"
+                      >AI Extracted</UiBadge
+                    >
+                  </div>
+                </div>
+                <UiButton
+                  variant="ghost"
+                  size="sm"
+                  @click="handleDeleteFeedback(fb.id)"
+                >
+                  Remove
+                </UiButton>
+              </div>
+            </UiCard>
+          </div>
         </div>
       </div>
     </div>

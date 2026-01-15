@@ -250,7 +250,7 @@ definePageMeta({
 
         <div class="grid md:grid-cols-3 gap-6">
           <!-- Feature 1 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >
@@ -278,7 +278,7 @@ definePageMeta({
           </article>
 
           <!-- Feature 2 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >
@@ -306,7 +306,7 @@ definePageMeta({
           </article>
 
           <!-- Feature 3 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >
@@ -334,7 +334,7 @@ definePageMeta({
           </article>
 
           <!-- Feature 4 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >
@@ -362,7 +362,7 @@ definePageMeta({
           </article>
 
           <!-- Feature 5 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >
@@ -390,7 +390,7 @@ definePageMeta({
           </article>
 
           <!-- Feature 6 -->
-          <article class="bg-white rounded-xl border border-neutral-200 p-6">
+          <article class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6">
             <div
               class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
             >

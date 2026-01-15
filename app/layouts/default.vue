@@ -32,7 +32,7 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50">
+  <div class="min-h-screen bg-white">
     <LayoutAppHeader />
     <div class="flex">
       <LayoutAppSidebar />

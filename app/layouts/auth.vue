@@ -16,7 +16,7 @@
       </div>
 
       <!-- Content -->
-      <div class="bg-white rounded-xl border border-neutral-200 p-6">
+      <div class="bg-white rounded-xl shadow-card p-6">
         <slot />
       </div>
     </div>

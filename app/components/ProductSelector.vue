@@ -29,7 +29,7 @@ function handleChange(productId: string) {
   <div class="relative">
     <select
       :value="selectedId"
-      class="block w-full pl-3 pr-8 py-1.5 text-sm font-medium text-neutral-700 border border-neutral-200 rounded-lg bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent appearance-none cursor-pointer transition-colors duration-150"
+      class="block w-full pl-3 pr-8 py-1.5 text-sm font-medium text-neutral-600 rounded-lg bg-transparent hover:bg-neutral-50 focus:outline-none appearance-none cursor-pointer transition-colors duration-150"
       @change="handleChange(($event.target as HTMLSelectElement).value)"
     >
       <option

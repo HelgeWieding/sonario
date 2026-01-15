@@ -13,10 +13,10 @@ withDefaults(defineProps<Props>(), {
 <template>
   <div
     :class="[
-      'rounded-xl border transition-colors',
+      'rounded-xl transition-all duration-200',
       variant === 'elevated'
-        ? 'bg-white border-neutral-100 shadow-soft'
-        : 'bg-white border-neutral-200',
+        ? 'bg-white shadow-card-hover'
+        : 'bg-white shadow-card hover:shadow-card-hover',
       padding && 'p-6',
     ]"
   >

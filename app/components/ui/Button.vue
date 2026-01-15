@@ -16,11 +16,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const variantClasses = {
-  primary: 'bg-neutral-900 text-white hover:bg-neutral-800 focus-visible:ring-neutral-900',
-  secondary: 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 focus-visible:ring-neutral-500',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-  ghost: 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-neutral-500',
-  accent: 'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500',
+  primary: 'bg-neutral-900 text-white hover:bg-neutral-800 hover:shadow-md active:scale-[0.98] focus-visible:ring-neutral-900',
+  secondary: 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 hover:shadow-sm active:scale-[0.98] focus-visible:ring-neutral-500',
+  danger: 'bg-red-600 text-white hover:bg-red-500 hover:shadow-md active:scale-[0.98] focus-visible:ring-red-500',
+  ghost: 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 active:scale-[0.98] focus-visible:ring-neutral-500',
+  accent: 'bg-accent-600 text-white hover:bg-accent-500 hover:shadow-md active:scale-[0.98] focus-visible:ring-accent-500',
 }
 
 const sizeClasses = {
@@ -35,9 +35,9 @@ const sizeClasses = {
     :type="type"
     :disabled="disabled || loading"
     :class="[
-      'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150',
+      'inline-flex items-center justify-center font-medium rounded-lg cursor-pointer transition-all duration-150',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-      'disabled:opacity-50 disabled:cursor-not-allowed',
+      'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100',
       variantClasses[variant],
       sizeClasses[size],
     ]"

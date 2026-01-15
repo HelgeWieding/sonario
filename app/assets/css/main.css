@@ -1,6 +1,65 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* ============================================
+   THEME CONFIGURATION (migrated from tailwind.config.ts)
+   ============================================ */
+@theme {
+  /* Font families */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Neutral color scale - warm undertone */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-150: #ededed;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
+  /* Accent color scale - dusty rose */
+  --color-accent-50: #fdf2f4;
+  --color-accent-100: #fce7eb;
+  --color-accent-200: #f9d0d9;
+  --color-accent-300: #f4a9ba;
+  --color-accent-400: #ec7a95;
+  --color-accent-500: #df5277;
+  --color-accent-600: #c9325a;
+  --color-accent-700: #a82548;
+  --color-accent-800: #8c2240;
+  --color-accent-900: #78203b;
+  --color-accent-950: #420d1d;
+
+  /* Primary color scale (alias to accent) */
+  --color-primary-50: #fdf2f4;
+  --color-primary-100: #fce7eb;
+  --color-primary-200: #f9d0d9;
+  --color-primary-300: #f4a9ba;
+  --color-primary-400: #ec7a95;
+  --color-primary-500: #df5277;
+  --color-primary-600: #c9325a;
+  --color-primary-700: #a82548;
+  --color-primary-800: #8c2240;
+  --color-primary-900: #78203b;
+  --color-primary-950: #420d1d;
+
+  /* Custom box shadows */
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-soft: 0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06);
+  --shadow-card-hover: 0 2px 8px rgb(0 0 0 / 0.06), 0 8px 24px -4px rgb(0 0 0 / 0.1);
+  --shadow-input: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-input-focus: 0 0 0 3px rgb(0 0 0 / 0.06);
+  --shadow-sidebar: 4px 0 24px -8px rgb(0 0 0 / 0.08);
+
+  /* Border radius - extend the default */
+  --radius: 0.5rem;
+}
 
 @layer base {
   html {
@@ -45,9 +104,9 @@
            focus-visible:ring-neutral-900;
   }
 
-  /* Secondary - Subtle, outlined */
+  /* Secondary - Clean border style */
   .btn-secondary {
-    @apply bg-white text-neutral-700
+    @apply bg-transparent text-neutral-700
            border border-neutral-200
            hover:bg-neutral-50 hover:border-neutral-300
            focus-visible:ring-neutral-500;
@@ -75,20 +134,20 @@
   }
 
   /* ============================================
-     FORM ELEMENTS
+     FORM ELEMENTS - Clean, minimal
      ============================================ */
   .input {
     @apply block w-full px-3 py-2.5
            text-sm text-neutral-900 placeholder:text-neutral-400
-           bg-white border border-neutral-200 rounded-lg
+           bg-transparent border border-neutral-200 rounded-lg
            transition-colors duration-150
            hover:border-neutral-300
-           focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent;
+           focus:outline-none focus:border-neutral-400;
   }
 
   .input-error {
     @apply border-red-300
-           focus:ring-red-500;
+           focus:border-red-500;
   }
 
   .label {
@@ -99,26 +158,26 @@
     @apply text-sm text-neutral-500 mt-1;
   }
 
-  /* Select dropdown - use with inline SVG icon wrapper */
+  /* Select dropdown - clean, minimal */
   .select {
     @apply block w-full px-3 py-2.5 pr-10
            text-sm text-neutral-900
-           bg-white border border-neutral-200 rounded-lg
+           bg-transparent border border-neutral-200 rounded-lg
            transition-colors duration-150
            hover:border-neutral-300
-           focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent
+           focus:outline-none focus:border-neutral-400
            appearance-none cursor-pointer;
   }
 
   /* ============================================
-     CARDS - Clean, minimal elevation
+     CARDS - Clean, modern with shadows
      ============================================ */
   .card {
-    @apply bg-white rounded-xl border border-neutral-200;
+    @apply bg-white rounded-xl shadow-card;
   }
 
   .card-elevated {
-    @apply bg-white rounded-xl border border-neutral-100 shadow-soft;
+    @apply bg-white rounded-xl shadow-card-hover;
   }
 
   /* ============================================
@@ -170,14 +229,14 @@
   }
 
   /* ============================================
-     DIVIDERS & SEPARATORS
+     DIVIDERS & SEPARATORS - Using gradients for softness
      ============================================ */
   .divider {
-    @apply border-t border-neutral-100;
+    @apply h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent;
   }
 
   .divider-vertical {
-    @apply border-l border-neutral-200 h-full;
+    @apply w-px bg-gradient-to-b from-transparent via-neutral-200 to-transparent;
   }
 
   /* ============================================
@@ -210,7 +269,7 @@
   /* Custom scrollbar for a refined look */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.neutral.300') transparent;
+    scrollbar-color: var(--color-neutral-300) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -223,12 +282,12 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.neutral.300');
+    background-color: var(--color-neutral-300);
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: theme('colors.neutral.400');
+    background-color: var(--color-neutral-400);
   }
 
   /* Hide scrollbar but keep functionality */

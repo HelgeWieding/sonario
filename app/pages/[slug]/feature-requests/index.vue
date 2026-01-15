@@ -16,7 +16,6 @@ const slug = computed(() => route.params.slug as string);
 const { product, fetchProductServer } = useProduct();
 
 await fetchProductServer(slug);
-console.log("product server", product.value);
 
 const {
   requests,
@@ -104,7 +103,9 @@ function closeAddDialog() {
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-semibold text-neutral-900 tracking-tight">Feature Requests</h1>
+        <h1 class="text-2xl font-semibold text-neutral-900 tracking-tight">
+          Feature Requests
+        </h1>
         <p v-if="product?.description" class="text-neutral-500 mt-1">
           {{ product?.description }}
         </p>
@@ -146,14 +147,28 @@ function closeAddDialog() {
     </div>
 
     <div v-else-if="requests.length === 0" class="text-center py-16">
-      <div class="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-neutral-400">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
+      <div
+        class="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-4"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6 text-neutral-400"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z"
+          />
         </svg>
       </div>
       <p class="text-neutral-900 font-medium mb-1">No feature requests found</p>
       <p class="text-sm text-neutral-500">
-        Feature requests will appear here when processed from Gmail or added manually.
+        Feature requests will appear here when processed from Gmail or added
+        manually.
       </p>
     </div>
 
@@ -180,7 +195,7 @@ function closeAddDialog() {
             v-model="newRequest.description"
             rows="4"
             placeholder="Describe the feature request..."
-            class="w-full px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 bg-white border border-neutral-200 rounded-lg transition-colors duration-150 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+            class="w-full px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 bg-transparent border border-neutral-200 rounded-lg transition-colors duration-150 hover:border-neutral-300 focus:outline-none focus:border-neutral-400"
           />
         </div>
         <div>

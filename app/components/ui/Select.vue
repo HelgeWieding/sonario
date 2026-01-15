@@ -26,7 +26,7 @@ const emit = defineEmits<{
     <select
       :value="modelValue"
       :disabled="disabled"
-      class="block w-full px-3 py-2.5 pr-10 text-sm text-neutral-900 bg-white border border-neutral-200 rounded-lg transition-colors duration-150 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed appearance-none cursor-pointer"
+      class="block w-full px-3 py-2.5 pr-10 text-sm text-neutral-900 bg-transparent border border-neutral-200 rounded-lg transition-colors duration-150 hover:border-neutral-300 focus:outline-none focus:border-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed appearance-none cursor-pointer"
       @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     >
       <option value="" disabled>{{ placeholder }}</option>

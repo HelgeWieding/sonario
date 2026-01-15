@@ -38,17 +38,17 @@ function handleBackdropClick(event: MouseEvent) {
         >
           <div
             v-if="open"
-            class="bg-white rounded-xl shadow-lg w-full max-w-md border border-neutral-200"
+            class="bg-white rounded-xl shadow-card-hover w-full max-w-md"
           >
-            <div v-if="title" class="px-6 py-4 border-b border-neutral-100">
+            <div v-if="title" class="px-6 py-4">
               <h3 class="text-base font-semibold text-neutral-900">{{ title }}</h3>
             </div>
-            <div class="p-6">
+            <div class="px-6 pb-6">
               <slot />
             </div>
             <div
               v-if="$slots.footer"
-              class="px-6 py-4 bg-neutral-50 border-t border-neutral-100 rounded-b-xl"
+              class="px-6 py-4 bg-gradient-to-t from-neutral-50 to-transparent rounded-b-xl"
             >
               <slot name="footer" />
             </div>

@@ -80,7 +80,7 @@ function toggleSidebar() {
 <template>
   <aside
     :class="[
-      'bg-white border-r border-neutral-200 min-h-[calc(100vh-56px)] transition-all duration-200 flex flex-col flex-shrink-0',
+      'bg-white min-h-[calc(100vh-56px)] transition-all duration-200 flex flex-col flex-shrink-0',
       isCollapsed ? 'w-16' : 'w-60',
     ]"
   >
@@ -176,7 +176,7 @@ function toggleSidebar() {
         <!-- Profile children -->
         <div
           v-if="!isCollapsed && isSectionExpanded('Profile')"
-          class="mt-1 ml-5 pl-3 border-l border-neutral-200 space-y-0.5"
+          class="mt-1 ml-8 space-y-0.5"
         >
           <NuxtLink
             to="/profile"
@@ -204,7 +204,7 @@ function toggleSidebar() {
       </div>
 
       <!-- Products section -->
-      <div class="pt-4 mt-4 border-t border-neutral-100">
+      <div class="pt-5 mt-5">
         <div
           v-if="!isCollapsed"
           class="px-3 pb-2 text-xs font-medium text-neutral-400 uppercase tracking-wider"
@@ -248,7 +248,7 @@ function toggleSidebar() {
           <!-- Product sub-navigation -->
           <div
             v-if="!isCollapsed && isProductActive(product.slug)"
-            class="ml-5 pl-3 border-l border-neutral-200 space-y-0.5 mt-1"
+            class="ml-8 space-y-0.5 mt-1"
           >
             <template
               v-for="navItem in getProductNavigation(product.slug)"
@@ -289,7 +289,7 @@ function toggleSidebar() {
                 <!-- Settings children -->
                 <div
                   v-if="isSectionExpanded(`${product.slug}-${navItem.name}`)"
-                  class="ml-3 pl-3 border-l border-neutral-100 space-y-0.5 mt-0.5"
+                  class="ml-4 space-y-0.5 mt-0.5"
                 >
                   <NuxtLink
                     v-for="child in navItem.children"
@@ -327,7 +327,7 @@ function toggleSidebar() {
     </nav>
 
     <!-- Collapse toggle -->
-    <div class="p-3 border-t border-neutral-100">
+    <div class="p-3">
       <button
         type="button"
         :class="[

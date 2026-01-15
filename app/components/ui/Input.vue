@@ -28,11 +28,11 @@ const emit = defineEmits<{
       :disabled="disabled"
       :class="[
         'block w-full px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400',
-        'bg-white border rounded-lg transition-colors duration-150',
+        'bg-transparent border border-neutral-200 rounded-lg transition-colors duration-150',
         'hover:border-neutral-300',
-        'focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent',
+        'focus:outline-none focus:border-neutral-400',
         'disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed',
-        error ? 'border-red-300 focus:ring-red-500' : 'border-neutral-200',
+        error ? 'border-red-300 focus:border-red-500' : '',
       ]"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     >

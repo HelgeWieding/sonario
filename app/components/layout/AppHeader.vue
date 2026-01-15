@@ -5,7 +5,7 @@ const { orgData } = useOrganizationManagement()
 </script>
 
 <template>
-  <header class="bg-white border-b border-neutral-200 sticky top-0 z-50">
+  <header class="bg-white sticky top-0 z-50">
     <div class="h-14 px-4 flex items-center justify-between">
       <!-- Left section: Logo + Navigation -->
       <div class="flex items-center gap-1">

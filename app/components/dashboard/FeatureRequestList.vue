@@ -31,7 +31,7 @@ function getStatusVariant(status: string) {
       class="block"
     >
       <NuxtLink :to="`/${productSlug}/feature-requests/${request.id}`">
-        <UiCard class="hover:border-neutral-300 transition-colors cursor-pointer">
+        <UiCard class="cursor-pointer">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
               <h4 class="font-medium text-neutral-900 truncate">{{ request.title }}</h4>

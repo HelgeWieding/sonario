@@ -1,13 +1,22 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-12-01',
 
   devtools: { enabled: true },
 
   modules: [
-    '@nuxtjs/tailwindcss',
     '@clerk/nuxt',
   ],
+
+  // CSS imports
+  css: ['~/assets/css/main.css'],
+
+  // Vite plugins
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   // Clerk configuration
   clerk: {
@@ -37,12 +46,6 @@ export default defineNuxtConfig({
     public: {
       appUrl: '',
     },
-  },
-
-  // TailwindCSS configuration
-  tailwindcss: {
-    cssPath: '~/assets/css/main.css',
-    configPath: 'tailwind.config.ts',
   },
 
   // Nitro (server) configuration

@@ -11,7 +11,7 @@ export function useFeatureRequest() {
   // Global state using useState
   const request = useState<FeatureRequestWithFeedback | null>(
     "feature-request",
-    () => null
+    () => null,
   );
   const loading = useState<boolean>("feature-request-loading", () => false);
   const error = useState<string | null>("feature-request-error", () => null);
@@ -25,7 +25,7 @@ export function useFeatureRequest() {
 
     try {
       const { data } = await $fetch<{ data: FeatureRequestWithFeedback }>(
-        `/api/${slug.value}/feature-requests/${requestId.value}`
+        `/api/${slug.value}/feature-requests/${requestId.value}`,
       );
       request.value = data;
     } catch (e: any) {
@@ -37,7 +37,7 @@ export function useFeatureRequest() {
   }
 
   async function updateRequest(
-    input: UpdateFeatureRequestInput
+    input: UpdateFeatureRequestInput,
   ): Promise<boolean> {
     if (!slug.value || !requestId.value) return false;
 
@@ -47,7 +47,7 @@ export function useFeatureRequest() {
         {
           method: "PUT",
           body: input,
-        }
+        },
       );
       request.value = data;
       return true;
@@ -64,7 +64,7 @@ export function useFeatureRequest() {
         `/api/${slug.value}/feature-requests/${requestId.value}`,
         {
           method: "DELETE",
-        }
+        },
       );
       request.value = null;
       return data.success;

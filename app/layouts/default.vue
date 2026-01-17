@@ -4,6 +4,10 @@ const { isSignedIn } = useAuth()
 const { fetchOrganizationData } = useOrganizationManagement()
 const { selectedProduct, selectProductBySlug, fetchProductsWithRedirect } = useProducts()
 
+// Modal container for teleportation
+const modalContainer = ref<HTMLElement | null>(null)
+provideModalContainer(modalContainer)
+
 // Fetch organization data server-side
 await fetchOrganizationData()
 
@@ -42,5 +46,7 @@ watch(
         </div>
       </main>
     </div>
+    <!-- Modal container for teleportation -->
+    <div ref="modalContainer" id="modal-container" />
   </div>
 </template>

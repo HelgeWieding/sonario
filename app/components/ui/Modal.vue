@@ -2,23 +2,35 @@
 interface Props {
   open: boolean
   title?: string
+  closeOnBackdrop?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  closeOnBackdrop: true,
+})
 
 const emit = defineEmits<{
   close: []
 }>()
 
+// Get the modal container from the layout, fallback to body
+const modalContainer = useModalContainer()
+const teleportTarget = computed(() => {
+  if (typeof modalContainer === 'string') {
+    return modalContainer
+  }
+  return modalContainer.value ?? 'body'
+})
+
 function handleBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget) {
+  if (props.closeOnBackdrop && event.target === event.currentTarget) {
     emit('close')
   }
 }
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport :to="teleportTarget">
     <Transition
       enter-active-class="transition-opacity duration-150"
       leave-active-class="transition-opacity duration-150"

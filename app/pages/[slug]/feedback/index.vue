@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Feedback } from "~~/server/db/schema/feedback";
 import type { FeatureRequest } from "~~/shared/types";
-import { SENTIMENT_LABELS, SENTIMENTS } from "~~/shared/constants/enums";
+import type { Sentiment } from "~~/shared/constants/enums";
+import { SENTIMENT_LABELS } from "~~/shared/constants/enums";
 
 definePageMeta({
   middleware: ["auth"],
@@ -25,41 +26,41 @@ interface Pagination {
   totalPages: number
 }
 
-// Removed useFeedback - using direct $fetch with slug-based API
-
 const loading = ref(true)
 const feedbackList = ref<FeedbackWithRelations[]>([])
 const pagination = ref<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 })
 const sentimentFilter = ref('')
 const expandedItems = ref<Set<string>>(new Set())
 
-// Add feedback dialog state
-const showAddDialog = ref(false)
-const creating = ref(false)
+// Feature requests for modals
 const featureRequests = ref<FeatureRequest[]>([])
 const loadingRequests = ref(false)
-const newFeedback = ref({
-  featureRequestId: '',
-  content: '',
-  sentiment: 'neutral' as typeof SENTIMENTS[number],
-  senderEmail: '',
-  senderName: '',
+
+// Modal states using composable
+const addModal = useModal({
+  async onOpen() {
+    if (product.value) {
+      await loadFeatureRequests()
+    }
+  },
 })
 
-// Link to feature request dialog state
-const showLinkDialog = ref(false)
-const selectedFeedbackId = ref<string | null>(null)
-const selectedFeatureRequestId = ref('')
-const linking = ref(false)
+const linkModal = useModal({
+  async onOpen() {
+    if (featureRequests.value.length === 0) {
+      await loadFeatureRequests()
+    }
+  },
+})
 
-// Delete dialog state
-const showDeleteDialog = ref(false)
+const deleteModal = useModal()
+
+// Modal-related state
+const selectedFeedbackForLink = ref<FeedbackWithRelations | null>(null)
 const feedbackToDelete = ref<FeedbackWithRelations | null>(null)
+const creating = ref(false)
+const linking = ref(false)
 const deleting = ref(false)
-
-const isFormValid = computed(() =>
-  product.value && newFeedback.value.content.trim()
-)
 
 const sentimentOptions = [
   { value: '', label: 'All Sentiments' },
@@ -67,17 +68,6 @@ const sentimentOptions = [
   { value: 'neutral', label: 'Neutral' },
   { value: 'negative', label: 'Negative' },
 ]
-
-const formSentimentOptions = [
-  { value: 'positive', label: 'Positive' },
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'negative', label: 'Negative' },
-]
-
-const featureRequestOptions = computed(() => [
-  { value: '', label: 'None (standalone feedback)' },
-  ...featureRequests.value.map(r => ({ value: r.id, label: r.title })),
-])
 
 async function loadFeatureRequests() {
   if (!product.value) {
@@ -161,91 +151,67 @@ function truncateContent(content: string, maxLength = 100) {
   return content.slice(0, maxLength) + '...'
 }
 
-async function openAddDialog() {
-  showAddDialog.value = true
-  if (product.value) {
-    await loadFeatureRequests()
-  }
+interface FeedbackForm {
+  featureRequestId: string
+  content: string
+  sentiment: Sentiment
+  senderEmail: string
+  senderName: string
 }
 
-function closeAddDialog() {
-  showAddDialog.value = false
-  newFeedback.value = {
-    featureRequestId: '',
-    content: '',
-    sentiment: 'neutral',
-    senderEmail: '',
-    senderName: '',
-  }
-}
+async function handleCreateFeedback(form: FeedbackForm) {
+  if (!product.value) return
 
-async function handleCreateFeedback() {
-  if (!isFormValid.value || !product.value) return;
-
-  creating.value = true;
+  creating.value = true
   try {
     await $fetch(`/api/${route.params.slug}/feedback`, {
       method: "POST",
       body: {
-        featureRequestId: newFeedback.value.featureRequestId || undefined,
-        content: newFeedback.value.content.trim(),
-        sentiment: newFeedback.value.sentiment,
-        senderEmail: newFeedback.value.senderEmail.trim() || undefined,
-        senderName: newFeedback.value.senderName.trim() || undefined,
+        featureRequestId: form.featureRequestId || undefined,
+        content: form.content.trim(),
+        sentiment: form.sentiment,
+        senderEmail: form.senderEmail.trim() || undefined,
+        senderName: form.senderName.trim() || undefined,
       },
-    });
-    closeAddDialog();
-    await loadFeedback(1);
+    })
+    addModal.close()
+    await loadFeedback(1)
   } catch (error) {
-    console.error("Failed to create feedback:", error);
+    console.error("Failed to create feedback:", error)
   } finally {
-    creating.value = false;
+    creating.value = false
   }
 }
 
-async function openLinkDialog(feedback: FeedbackWithRelations) {
-  selectedFeedbackId.value = feedback.id
-  selectedFeatureRequestId.value = feedback.featureRequest?.id || ''
-  showLinkDialog.value = true
-  if (featureRequests.value.length === 0) {
-    await loadFeatureRequests()
-  }
+function openLinkModal(feedback: FeedbackWithRelations) {
+  selectedFeedbackForLink.value = feedback
+  linkModal.open()
 }
 
-function closeLinkDialog() {
-  showLinkDialog.value = false
-  selectedFeedbackId.value = null
-  selectedFeatureRequestId.value = ''
-}
-
-async function handleLinkToFeatureRequest() {
-  if (!selectedFeedbackId.value) return
+async function handleLinkToFeatureRequest(featureRequestId: string | null) {
+  if (!selectedFeedbackForLink.value) return
 
   linking.value = true
   try {
-    await $fetch(`/api/${route.params.slug}/feedback/${selectedFeedbackId.value}`, {
+    await $fetch(`/api/${route.params.slug}/feedback/${selectedFeedbackForLink.value.id}`, {
       method: "PATCH",
       body: {
-        featureRequestId: selectedFeatureRequestId.value || null,
+        featureRequestId: featureRequestId,
       },
-    });
-    closeLinkDialog()
+    })
+    linkModal.close()
+    selectedFeedbackForLink.value = null
     await loadFeedback(pagination.value.page)
   } catch (error) {
-    console.error("Failed to link feedback to feature request:", error);
+    console.error("Failed to link feedback to feature request:", error)
   } finally {
     linking.value = false
   }
 }
 
-function openDeleteDialog(item: FeedbackWithRelations) {
+function openDeleteModal(item: FeedbackWithRelations) {
   feedbackToDelete.value = item
-  showDeleteDialog.value = true
-}
-
-function closeDeleteDialog() {
-  showDeleteDialog.value = false
-  feedbackToDelete.value = null
+  deleteModal.open()
 }
 
 async function handleDeleteFeedback() {
@@ -255,11 +221,12 @@ async function handleDeleteFeedback() {
   try {
     await $fetch(`/api/${route.params.slug}/feedback/${feedbackToDelete.value.id}`, {
       method: "DELETE",
-    });
-    closeDeleteDialog()
+    })
+    deleteModal.close()
+    feedbackToDelete.value = null
     await loadFeedback(pagination.value.page)
   } catch (error) {
-    console.error("Failed to delete feedback:", error);
+    console.error("Failed to delete feedback:", error)
   } finally {
     deleting.value = false
   }
@@ -292,7 +259,7 @@ watch([sentimentFilter], () => {
           placeholder="Filter by sentiment"
         />
       </div>
-      <UiButton class="ml-auto" @click="openAddDialog">
+      <UiButton class="ml-auto" @click="addModal.open">
         Add Feedback
       </UiButton>
     </div>
@@ -376,7 +343,7 @@ watch([sentimentFilter], () => {
                   type="button"
                   class="px-2 py-1 text-xs font-medium rounded border border-gray-300 text-gray-900 hover:bg-gray-50 max-w-[150px] truncate"
                   :title="item.featureRequest.title"
-                  @click.stop="openLinkDialog(item)"
+                  @click.stop="openLinkModal(item)"
                 >
                   {{ item.featureRequest.title }}
                 </button>
@@ -384,7 +351,7 @@ watch([sentimentFilter], () => {
                   v-else
                   type="button"
                   class="px-2 py-1 text-xs font-medium rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 whitespace-nowrap"
-                  @click.stop="openLinkDialog(item)"
+                  @click.stop="openLinkModal(item)"
                 >
                   Add to feature request
                 </button>
@@ -436,7 +403,7 @@ watch([sentimentFilter], () => {
                 <UiButton
                   size="sm"
                   variant="danger"
-                  @click.stop="openDeleteDialog(item)"
+                  @click.stop="openDeleteModal(item)"
                 >
                   Delete
                 </UiButton>
@@ -476,113 +443,38 @@ watch([sentimentFilter], () => {
     </template>
 
     <!-- Add Feedback Modal -->
-    <UiModal :open="showAddDialog" title="Add Feedback" @close="closeAddDialog">
-      <form @submit.prevent="handleCreateFeedback" class="space-y-4">
-        <!-- Content -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Feedback Content</label>
-          <textarea
-            v-model="newFeedback.content"
-            rows="4"
-            placeholder="Enter the feedback..."
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-        </div>
-
-        <!-- Sentiment -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sentiment</label>
-          <UiSelect
-            v-model="newFeedback.sentiment"
-            :options="formSentimentOptions"
-          />
-        </div>
-
-        <!-- Feature Request Link -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Link to Feature Request</label>
-          <UiSelect
-            v-model="newFeedback.featureRequestId"
-            :options="featureRequestOptions"
-            :disabled="loadingRequests"
-            placeholder="Select a feature request (optional)"
-          />
-          <p class="text-xs text-gray-500 mt-1">Optionally link this feedback to an existing feature request</p>
-        </div>
-
-        <!-- Sender Info -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
-            <UiInput
-              v-model="newFeedback.senderName"
-              placeholder="Optional"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sender Email</label>
-            <UiInput
-              v-model="newFeedback.senderEmail"
-              type="email"
-              placeholder="Optional"
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-4">
-          <UiButton type="button" variant="secondary" @click="closeAddDialog">
-            Cancel
-          </UiButton>
-          <UiButton type="submit" :loading="creating" :disabled="!isFormValid">
-            Add Feedback
-          </UiButton>
-        </div>
-      </form>
-    </UiModal>
+    <FeedbackAddFeedbackModal
+      :open="addModal.isOpen.value"
+      :feature-requests="featureRequests"
+      :loading-requests="loadingRequests"
+      @close="addModal.close"
+      @submit="handleCreateFeedback"
+    />
 
     <!-- Link to Feature Request Modal -->
-    <UiModal :open="showLinkDialog" title="Link to Feature Request" @close="closeLinkDialog">
-      <form @submit.prevent="handleLinkToFeatureRequest" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Feature Request</label>
-          <UiSelect
-            v-model="selectedFeatureRequestId"
-            :options="featureRequestOptions"
-            :disabled="loadingRequests"
-            placeholder="Select a feature request"
-          />
-          <p class="text-xs text-gray-500 mt-1">Select a feature request to link this feedback to, or choose "None" to unlink.</p>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-4">
-          <UiButton type="button" variant="secondary" @click="closeLinkDialog">
-            Cancel
-          </UiButton>
-          <UiButton type="submit" :loading="linking">
-            Save
-          </UiButton>
-        </div>
-      </form>
-    </UiModal>
+    <FeedbackLinkFeedbackModal
+      :open="linkModal.isOpen.value"
+      :feature-requests="featureRequests"
+      :current-feature-request-id="selectedFeedbackForLink?.featureRequest?.id"
+      :loading-requests="loadingRequests"
+      @close="linkModal.close"
+      @submit="handleLinkToFeatureRequest"
+    />
 
     <!-- Delete Confirmation Modal -->
-    <UiModal :open="showDeleteDialog" title="Delete Feedback" @close="closeDeleteDialog">
-      <div class="space-y-4">
-        <p class="text-gray-600">
-          Are you sure you want to delete this feedback? This action cannot be undone.
-        </p>
-        <div v-if="feedbackToDelete" class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
-          {{ feedbackToDelete.content.length > 100 ? feedbackToDelete.content.slice(0, 100) + '...' : feedbackToDelete.content }}
-        </div>
-        <div class="flex justify-end gap-2 pt-4">
-          <UiButton type="button" variant="secondary" @click="closeDeleteDialog">
-            Cancel
-          </UiButton>
-          <UiButton variant="danger" :loading="deleting" @click="handleDeleteFeedback">
-            Delete
-          </UiButton>
-        </div>
+    <UiConfirmModal
+      :open="deleteModal.isOpen.value"
+      title="Delete Feedback"
+      message="Are you sure you want to delete this feedback? This action cannot be undone."
+      confirm-text="Delete"
+      confirm-variant="danger"
+      :loading="deleting"
+      @close="deleteModal.close"
+      @confirm="handleDeleteFeedback"
+    >
+      <div v-if="feedbackToDelete" class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
+        {{ feedbackToDelete.content.length > 100 ? feedbackToDelete.content.slice(0, 100) + '...' : feedbackToDelete.content }}
       </div>
-    </UiModal>
+    </UiConfirmModal>
   </div>
 </template>

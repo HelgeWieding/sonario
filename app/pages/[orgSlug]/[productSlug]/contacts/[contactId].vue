@@ -7,8 +7,15 @@ definePageMeta({
 
 const route = useRoute();
 const contactId = route.params.contactId as string;
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const { product, fetchProductServer } = useProduct();
+const { buildProductRoute } = useOrgSlug();
+
+// Computed routes
+const contactsPath = computed(() => buildProductRoute(product.value?.slug ?? '', 'contacts'));
+function getFeatureRequestRoute(requestId: string) {
+  return buildProductRoute(product.value?.slug ?? '', `feature-requests/${requestId}`);
+}
 
 await fetchProductServer(slug);
 
@@ -44,7 +51,7 @@ async function loadContact() {
   loading.value = true;
   try {
     const { data } = await $fetch<{ data: ContactWithFeedback }>(
-      `/api/${route.params.slug}/contacts/${contactId}`
+      `/api/${route.params.productSlug}/contacts/${contactId}`
     );
     contact.value = data;
   } catch (error) {
@@ -93,7 +100,7 @@ onMounted(() => {
       </div>
       <h2 class="text-lg font-semibold text-gray-900 mb-2">Contact not found</h2>
       <p class="text-gray-500 mb-4">This contact doesn't exist or has been deleted.</p>
-      <NuxtLink :to="`/${product?.slug}/contacts`" class="text-primary-600 hover:underline">
+      <NuxtLink :to="contactsPath" class="text-primary-600 hover:underline">
         Back to Contacts
       </NuxtLink>
     </div>
@@ -102,7 +109,7 @@ onMounted(() => {
     <div v-else>
       <!-- Header -->
       <div class="mb-6">
-        <NuxtLink :to="`/${product?.slug}/contacts`" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
+        <NuxtLink :to="contactsPath" class="text-sm text-gray-500 hover:text-gray-700 mb-1 block">
           &larr; Back to Contacts
         </NuxtLink>
         <h1 class="text-2xl font-bold text-gray-900">
@@ -134,7 +141,7 @@ onMounted(() => {
           <!-- Feature request link -->
           <div v-if="fb.featureRequest" class="mb-3">
             <NuxtLink
-              :to="`/${product?.slug}/feature-requests/${fb.featureRequest.id}`"
+              :to="getFeatureRequestRoute(fb.featureRequest.id)"
               class="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
               {{ fb.featureRequest.title }}

@@ -41,7 +41,7 @@ export function useFeedback() {
 
     try {
       const { data } = await $fetch<{ data: Feedback }>(
-        `/api/${route.params.slug}/feedback`,
+        `/api/${route.params.productSlug}/feedback`,
         {
           method: "POST",
           body: {
@@ -62,7 +62,7 @@ export function useFeedback() {
 
   async function deleteFeedback(id: string): Promise<boolean> {
     try {
-      await $fetch(`/api/${route.params.slug}/feedback/${id}`, {
+      await $fetch(`/api/${route.params.productSlug}/feedback/${id}`, {
         method: "DELETE",
       });
       return true;

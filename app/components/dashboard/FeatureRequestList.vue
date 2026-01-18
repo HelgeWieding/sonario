@@ -7,7 +7,8 @@ interface Props {
   productSlug: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+const { buildProductRoute } = useOrgSlug()
 
 function getStatusVariant(status: string) {
   const variants: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
@@ -21,6 +22,10 @@ function getStatusVariant(status: string) {
   return variants[status] || 'default'
 }
 
+function getRequestRoute(requestId: string) {
+  return buildProductRoute(props.productSlug, `feature-requests/${requestId}`)
+}
+
 </script>
 
 <template>
@@ -30,7 +35,7 @@ function getStatusVariant(status: string) {
       :key="request.id"
       class="block"
     >
-      <NuxtLink :to="`/${productSlug}/feature-requests/${request.id}`">
+      <NuxtLink :to="getRequestRoute(request.id)">
         <UiCard class="cursor-pointer">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">

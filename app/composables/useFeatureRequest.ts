@@ -5,7 +5,7 @@ import type {
 
 export function useFeatureRequest() {
   const route = useRoute();
-  const slug = computed(() => route.params.slug as string);
+  const slug = computed(() => route.params.productSlug as string);
   const requestId = computed(() => route.params.requestId as string);
 
   // Global state using useState

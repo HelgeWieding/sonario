@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   })
 
   // Fallback redirect if no product found
-  const settingsUrl = product ? `/${product.slug}/settings/helpscout` : '/dashboard'
+  const settingsUrl = product ? `/${product.slug}/settings/helpscout` : '/post-auth-redirect'
 
   if (error) {
     return sendRedirect(event, `${settingsUrl}?error=` + encodeURIComponent(error))
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!product) {
-    return sendRedirect(event, '/dashboard?error=no_product')
+    return sendRedirect(event, '/post-auth-redirect?error=no_product')
   }
 
   try {

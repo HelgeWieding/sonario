@@ -5,15 +5,16 @@ definePageMeta({
 })
 
 const { selectedProduct, fetchProducts } = useProducts()
+const { buildProductRoute } = useOrgSlug()
 
 // This page is just a fallback - the actual callback handling is done server-side
-// and redirects to /{slug}/settings/gmail
+// and redirects to /{orgSlug}/{slug}/settings/gmail
 onMounted(async () => {
   await fetchProducts()
   if (selectedProduct.value) {
-    navigateTo(`/${selectedProduct.value.slug}/settings/gmail`)
+    navigateTo(buildProductRoute(selectedProduct.value.slug, 'settings/gmail'))
   } else {
-    navigateTo('/dashboard')
+    navigateTo('/post-auth-redirect')
   }
 })
 </script>

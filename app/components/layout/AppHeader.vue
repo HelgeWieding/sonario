@@ -2,6 +2,10 @@
 const { user } = useUser()
 const { selectedProduct, hasMultipleProducts, products, selectProduct } = useProducts()
 const { orgData } = useOrganizationManagement()
+const { buildOrgRoute } = useOrgSlug()
+
+// Dashboard path with org slug
+const dashboardPath = computed(() => buildOrgRoute('dashboard'))
 </script>
 
 <template>
@@ -11,7 +15,7 @@ const { orgData } = useOrganizationManagement()
       <div class="flex items-center gap-1">
         <!-- Logo -->
         <NuxtLink
-          to="/dashboard"
+          :to="dashboardPath"
           class="flex items-center gap-2 px-2 py-1.5 -ml-2 rounded-lg hover:bg-neutral-50 transition-colors"
         >
           <div class="w-7 h-7 bg-accent-500 rounded-lg flex items-center justify-center">
@@ -33,8 +37,8 @@ const { orgData } = useOrganizationManagement()
           <OrganizationSwitcher
             :hide-personal="false"
             :after-create-organization-url="'/onboarding/organization-check'"
-            :after-select-organization-url="'/dashboard'"
-            :after-select-personal-url="'/dashboard'"
+            :after-select-organization-url="'/post-auth-redirect'"
+            :after-select-personal-url="'/post-auth-redirect'"
           />
         </div>
 

@@ -208,7 +208,7 @@ function getInitials(firstName: string | null, lastName: string | null, email: s
           Create a team to invite colleagues and collaborate on feature requests.
           All team members will have full access to your products.
         </p>
-        <CreateOrganization :after-create-organization-url="'/dashboard'" />
+        <CreateOrganization :after-create-organization-url="'/post-auth-redirect'" />
       </UiCard>
     </template>
 

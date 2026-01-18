@@ -8,7 +8,7 @@ definePageMeta({
 });
 
 const route = useRoute();
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const { product, fetchProductServer } = useProduct();
 
 await fetchProductServer(slug);
@@ -88,7 +88,7 @@ async function loadMessages(page = 1) {
     const response = await $fetch<{
       data: ProcessedMessage[];
       pagination: Pagination;
-    }>(`/api/${route.params.slug}/messages?${params}`);
+    }>(`/api/${route.params.productSlug}/messages?${params}`);
     messages.value = response.data;
     pagination.value = response.pagination;
   } catch (error) {
@@ -156,7 +156,7 @@ async function loadFeatureRequests() {
   loadingRequests.value = true;
   try {
     const { data } = await $fetch<{ data: FeatureRequest[] }>(
-      `/api/${route.params.slug}/feature-requests?productId=${product.value.id}`
+      `/api/${route.params.productSlug}/feature-requests?productId=${product.value.id}`
     );
     featureRequests.value = data;
   } catch (error) {
@@ -199,7 +199,7 @@ async function handleCreateFeedback() {
 
   creatingFeedback.value = true;
   try {
-    await $fetch(`/api/${route.params.slug}/feedback`, {
+    await $fetch(`/api/${route.params.productSlug}/feedback`, {
       method: "POST",
       body: {
         featureRequestId: newFeedback.value.featureRequestId || undefined,
@@ -234,7 +234,7 @@ async function handleDeleteMessage() {
 
   deleting.value = true
   try {
-    await $fetch(`/api/${route.params.slug}/messages/${messageToDelete.value.id}`, {
+    await $fetch(`/api/${route.params.productSlug}/messages/${messageToDelete.value.id}`, {
       method: "DELETE",
     });
     closeDeleteDialog()

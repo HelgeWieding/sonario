@@ -4,13 +4,14 @@ export const organizations = pgTable('organizations', {
   id: uuid('id').primaryKey().defaultRandom(),
   clerkId: text('clerk_id').notNull(),
   name: text('name').notNull(),
-  slug: text('slug'),
+  slug: text('slug').notNull(),
   imageUrl: text('image_url'),
   hasCompletedOnboarding: boolean('has_completed_onboarding').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => [
   uniqueIndex('organizations_clerk_id_idx').on(table.clerkId),
+  uniqueIndex('organizations_slug_idx').on(table.slug),
 ])
 
 export type Organization = typeof organizations.$inferSelect

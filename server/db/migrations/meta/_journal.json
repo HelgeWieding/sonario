@@ -57,6 +57,13 @@
       "when": 1768000000000,
       "tag": "0007_rename_new_to_untriaged",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768748451420,
+      "tag": "0008_safe_mandrill",
+      "breakpoints": true
     }
   ]
 }

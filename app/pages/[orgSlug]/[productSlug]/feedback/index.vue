@@ -9,8 +9,18 @@ definePageMeta({
 });
 
 const route = useRoute();
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const { product, fetchProductServer } = useProduct();
+const { buildProductRoute } = useOrgSlug();
+
+// Helper to build routes for this product
+function getFeatureRequestRoute(requestId: string) {
+  return buildProductRoute(product.value?.slug ?? '', `feature-requests/${requestId}`)
+}
+
+function getContactRoute(contactId: string) {
+  return buildProductRoute(product.value?.slug ?? '', `contacts/${contactId}`)
+}
 
 await fetchProductServer(slug);
 
@@ -77,7 +87,7 @@ async function loadFeatureRequests() {
   loadingRequests.value = true;
   try {
     const { data } = await $fetch<{ data: FeatureRequest[] }>(
-      `/api/${route.params.slug}/feature-requests?productId=${product.value.id}`
+      `/api/${route.params.productSlug}/feature-requests?productId=${product.value.id}`
     );
     featureRequests.value = data;
   } catch (error) {
@@ -100,7 +110,7 @@ async function loadFeedback(page = 1) {
     const response = await $fetch<{
       data: FeedbackWithRelations[];
       pagination: Pagination;
-    }>(`/api/${route.params.slug}/feedback?${params}`);
+    }>(`/api/${route.params.productSlug}/feedback?${params}`);
     feedbackList.value = response.data;
     pagination.value = response.pagination;
   } catch (error) {
@@ -164,7 +174,7 @@ async function handleCreateFeedback(form: FeedbackForm) {
 
   creating.value = true
   try {
-    await $fetch(`/api/${route.params.slug}/feedback`, {
+    await $fetch(`/api/${route.params.productSlug}/feedback`, {
       method: "POST",
       body: {
         featureRequestId: form.featureRequestId || undefined,
@@ -193,7 +203,7 @@ async function handleLinkToFeatureRequest(featureRequestId: string | null) {
 
   linking.value = true
   try {
-    await $fetch(`/api/${route.params.slug}/feedback/${selectedFeedbackForLink.value.id}`, {
+    await $fetch(`/api/${route.params.productSlug}/feedback/${selectedFeedbackForLink.value.id}`, {
       method: "PATCH",
       body: {
         featureRequestId: featureRequestId,
@@ -219,7 +229,7 @@ async function handleDeleteFeedback() {
 
   deleting.value = true
   try {
-    await $fetch(`/api/${route.params.slug}/feedback/${feedbackToDelete.value.id}`, {
+    await $fetch(`/api/${route.params.productSlug}/feedback/${feedbackToDelete.value.id}`, {
       method: "DELETE",
     })
     deleteModal.close()
@@ -380,7 +390,7 @@ watch([sentimentFilter], () => {
               <div v-if="item.featureRequest" class="text-sm mb-2">
                 <span class="text-gray-500">Related to: </span>
                 <NuxtLink
-                  :to="`/${product?.slug}/feature-requests/${item.featureRequest.id}`"
+                  :to="getFeatureRequestRoute(item.featureRequest.id)"
                   class="text-blue-600 hover:text-blue-800"
                 >
                   {{ item.featureRequest.title }}
@@ -391,7 +401,7 @@ watch([sentimentFilter], () => {
               <div v-if="item.contact" class="text-sm">
                 <span class="text-gray-500">Contact: </span>
                 <NuxtLink
-                  :to="`/${product?.slug}/contacts/${item.contact.id}`"
+                  :to="getContactRoute(item.contact.id)"
                   class="text-blue-600 hover:text-blue-800"
                 >
                   {{ item.contact.name || item.contact.email }}

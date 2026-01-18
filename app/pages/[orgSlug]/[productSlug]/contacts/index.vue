@@ -4,8 +4,14 @@ definePageMeta({
 });
 
 const route = useRoute();
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const { product, fetchProductServer } = useProduct();
+const { buildProductRoute } = useOrgSlug();
+
+// Helper to build contact detail route
+function getContactRoute(contactId: string) {
+  return buildProductRoute(product.value?.slug ?? '', `contacts/${contactId}`);
+}
 
 await fetchProductServer(slug);
 
@@ -27,7 +33,7 @@ async function loadContacts() {
   loading.value = true;
   try {
     const { data } = await $fetch<{ data: ContactWithStats[] }>(
-      `/api/${route.params.slug}/contacts`
+      `/api/${route.params.productSlug}/contacts`
     );
     contacts.value = data;
   } catch (error) {
@@ -118,7 +124,7 @@ onMounted(() => {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <NuxtLink
-                :to="`/${product?.slug}/contacts/${contact.id}`"
+                :to="getContactRoute(contact.id)"
                 class="text-blue-600 hover:text-blue-900"
               >
                 View

@@ -8,6 +8,10 @@ const router = useRouter();
 const { error, createProduct } = useProduct();
 const { orgId } = useAuth();
 const { fetchProducts, hasProducts } = useProducts();
+const { fetchOrganizationData, currentOrg } = useOrganizationManagement();
+
+// Fetch org data to get the slug for redirects
+await fetchOrganizationData();
 
 // If no org, redirect to create-organization
 if (!orgId.value) {
@@ -19,8 +23,8 @@ const checkingProducts = ref(true);
 onMounted(async () => {
   if (orgId.value) {
     await fetchProducts();
-    if (hasProducts.value) {
-      navigateTo("/dashboard");
+    if (hasProducts.value && currentOrg.value?.slug) {
+      navigateTo(`/${currentOrg.value.slug}/dashboard`);
       return;
     }
   }
@@ -44,8 +48,11 @@ async function handleSubmit() {
   });
   creating.value = false;
 
-  if (result) {
-    router.push("/dashboard");
+  if (result && currentOrg.value?.slug) {
+    router.push(`/${currentOrg.value.slug}/dashboard`);
+  } else if (result) {
+    // Fallback to post-auth-redirect if no org slug available
+    router.push('/post-auth-redirect');
   }
 }
 </script>

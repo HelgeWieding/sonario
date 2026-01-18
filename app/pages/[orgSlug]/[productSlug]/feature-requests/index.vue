@@ -12,7 +12,7 @@ definePageMeta({
 
 // Product is guaranteed to exist by middleware
 const route = useRoute();
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const { product, fetchProductServer } = useProduct();
 
 await fetchProductServer(slug);
@@ -75,10 +75,10 @@ watch([statusFilter, categoryFilter], () => {
 });
 
 async function handleCreateRequest() {
-  console.log(route.params.slug);
+  console.log(route.params.productSlug);
 
   creating.value = true;
-  const result = await createRequest(route.params.slug as string, {
+  const result = await createRequest(route.params.productSlug as string, {
     productId: product.value?.id ?? "",
     title: newRequest.value.title.trim(),
     description: newRequest.value.description.trim(),

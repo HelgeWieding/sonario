@@ -1,7 +1,7 @@
 interface OrganizationInfo {
   id: string
   name: string
-  slug: string | null
+  slug: string
   imageUrl: string | null
 }
 
@@ -31,9 +31,14 @@ export function useOrganizationManagement() {
   async function fetchOrganizationData() {
     const headers = getRequestHeaders()
 
-    return useAsyncData('organization-current', () =>
-      $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers })
-    )
+    try {
+      const response = await $fetch<{ data: OrganizationData }>('/api/organizations/current', { headers })
+      orgData.value = response.data
+      error.value = null
+    } catch (e: any) {
+      error.value = e.data?.message || 'Failed to fetch organization data'
+      orgData.value = null
+    }
   }
 
   // Computed properties for easy access

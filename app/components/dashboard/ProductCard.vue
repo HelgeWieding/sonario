@@ -5,11 +5,15 @@ interface Props {
   product: ProductWithStats
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+const { buildProductRoute } = useOrgSlug()
+
+// Link to the product's feature-requests page
+const productLink = computed(() => buildProductRoute(props.product.slug, 'feature-requests'))
 </script>
 
 <template>
-  <NuxtLink :to="`/products/${product.id}`" class="block">
+  <NuxtLink :to="productLink" class="block">
     <UiCard class="hover:border-primary-300 transition-colors cursor-pointer">
       <h3 class="font-semibold text-gray-900">{{ product.name }}</h3>
       <p v-if="product.description" class="text-sm text-gray-500 mt-1 line-clamp-2">

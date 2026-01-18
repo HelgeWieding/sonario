@@ -14,8 +14,12 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
-const slug = computed(() => route.params.slug as string);
+const slug = computed(() => route.params.productSlug as string);
 const requestId = computed(() => route.params.requestId as string);
+const { buildProductRoute } = useOrgSlug();
+
+// Computed route for feature requests list
+const featureRequestsPath = computed(() => buildProductRoute(slug.value, 'feature-requests'));
 
 // Product is guaranteed to exist by middleware
 const { product } = useProduct();
@@ -85,7 +89,7 @@ async function handleStatusChange(status: string) {
 async function handleDelete() {
   const success = await deleteRequest();
   if (success) {
-    router.push(`/${route.params.slug}/feature-requests`);
+    router.push(featureRequestsPath.value);
   }
 }
 
@@ -146,7 +150,7 @@ async function handleDeleteFeedback(feedbackId: string) {
         This feature request doesn't exist or has been deleted.
       </p>
       <NuxtLink
-        :to="`/${slug}/feature-requests`"
+        :to="featureRequestsPath"
         class="text-primary-600 hover:underline"
       >
         Back to Feature Requests
@@ -157,7 +161,7 @@ async function handleDeleteFeedback(feedbackId: string) {
       <!-- Header -->
       <div class="mb-6">
         <NuxtLink
-          :to="`/${slug}/feature-requests`"
+          :to="featureRequestsPath"
           class="text-sm text-gray-500 hover:text-gray-700 mb-1 block"
         >
           &larr; Back to Feature Requests

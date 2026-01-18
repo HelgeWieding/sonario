@@ -4,9 +4,9 @@ definePageMeta({
 })
 
 const route = useRoute()
-// Invited users (with ticket) go to dashboard, new users go to onboarding
+// Invited users (with ticket) go to post-auth-redirect, new users go to onboarding
 const redirectUrl = computed(() =>
-  route.query.__clerk_ticket ? '/dashboard' : '/onboarding'
+  route.query.__clerk_ticket ? '/post-auth-redirect' : '/onboarding/create-organization'
 )
 </script>
 

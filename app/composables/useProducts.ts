@@ -76,7 +76,7 @@ export function useProducts() {
 
     // If no products after fetch (and not a 401 error), redirect to create product
     if (products.value.length === 0 && errorStatus.value !== 401) {
-      await router.push("/onboarding/create-product");
+      await router.push('/onboarding/create-product');
       return true; // Redirect happened
     }
 

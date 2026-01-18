@@ -7,9 +7,9 @@ definePageMeta({
 <template>
   <div>
     <SignIn
-      fallback-redirect-url="/dashboard"
+      fallback-redirect-url="/post-auth-redirect"
       sign-up-url="/sign-up"
-      redirect-url="/dashboard"
+      redirect-url="/post-auth-redirect"
     />
   </div>
 </template>

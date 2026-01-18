@@ -1,32 +1,38 @@
 <script setup lang="ts">
 const route = useRoute();
 const { products } = useProducts();
+const { effectiveOrgSlug, buildOrgRoute, buildProductRoute } = useOrgSlug();
 
 // Persist collapsed state
 const isCollapsed = useState("sidebar-collapsed", () => false);
 
 // Get the current product slug from route
-const currentSlug = computed(() => route.params.slug as string | undefined);
+const currentSlug = computed(() => route.params.productSlug as string | undefined);
+
+// Computed dashboard path with org slug
+const dashboardPath = computed(() => buildOrgRoute('dashboard'));
+const profilePath = computed(() => buildOrgRoute('profile'));
+const teamPath = computed(() => buildOrgRoute('team'));
 
 // Get navigation items for a specific product
-function getProductNavigation(slug: string) {
+function getProductNavigation(productSlug: string) {
   return [
     {
       name: "Feature Requests",
-      href: `/${slug}/feature-requests`,
+      href: buildProductRoute(productSlug, 'feature-requests'),
       icon: "inbox",
     },
-    { name: "Messages", href: `/${slug}/messages`, icon: "envelope" },
-    { name: "Contacts", href: `/${slug}/contacts`, icon: "users" },
-    { name: "Feedback", href: `/${slug}/feedback`, icon: "chat" },
+    { name: "Messages", href: buildProductRoute(productSlug, 'messages'), icon: "envelope" },
+    { name: "Contacts", href: buildProductRoute(productSlug, 'contacts'), icon: "users" },
+    { name: "Feedback", href: buildProductRoute(productSlug, 'feedback'), icon: "chat" },
     {
       name: "Settings",
-      href: `/${slug}/settings`,
+      href: buildProductRoute(productSlug, 'settings'),
       icon: "settings",
       children: [
-        { name: "Product", href: `/${slug}/settings` },
-        { name: "Gmail", href: `/${slug}/settings/gmail` },
-        { name: "Help Scout", href: `/${slug}/settings/helpscout` },
+        { name: "Product", href: buildProductRoute(productSlug, 'settings') },
+        { name: "Gmail", href: buildProductRoute(productSlug, 'settings/gmail') },
+        { name: "Help Scout", href: buildProductRoute(productSlug, 'settings/helpscout') },
       ],
     },
   ];
@@ -43,6 +49,23 @@ function isActive(href: string) {
 
 function isExactActive(href: string) {
   return route.path === href;
+}
+
+// Check if current route matches a path segment (works with org prefix)
+function isDashboardActive() {
+  return route.path.endsWith('/dashboard');
+}
+
+function isProfileActive() {
+  return route.path.endsWith('/profile');
+}
+
+function isTeamActive() {
+  return route.path.endsWith('/team');
+}
+
+function isProfileOrTeamActive() {
+  return isProfileActive() || isTeamActive();
 }
 
 function isProductActive(slug: string) {
@@ -88,10 +111,10 @@ function toggleSidebar() {
     <nav class="flex-1 p-3 space-y-1 overflow-hidden scrollbar-thin">
       <!-- Dashboard -->
       <NuxtLink
-        to="/dashboard"
+        :to="dashboardPath"
         :class="[
           'relative flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
-          isExactActive('/dashboard')
+          isDashboardActive()
             ? 'text-neutral-900 bg-neutral-50'
             : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
           isCollapsed ? 'justify-center' : '',
@@ -99,7 +122,7 @@ function toggleSidebar() {
         :title="isCollapsed ? 'Dashboard' : undefined"
       >
         <span
-          v-if="isExactActive('/dashboard')"
+          v-if="isDashboardActive()"
           class="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-500 rounded-l"
         />
         <svg
@@ -125,7 +148,7 @@ function toggleSidebar() {
           type="button"
           :class="[
             'relative w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150',
-            route.path.startsWith('/profile') || route.path.startsWith('/team')
+            isProfileOrTeamActive()
               ? 'text-neutral-900 bg-neutral-50'
               : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
             isCollapsed ? 'justify-center' : '',
@@ -134,7 +157,7 @@ function toggleSidebar() {
           @click="isCollapsed ? (isCollapsed = false) : toggleSection('Profile')"
         >
           <span
-            v-if="route.path.startsWith('/profile') || route.path.startsWith('/team')"
+            v-if="isProfileOrTeamActive()"
             class="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-500 rounded-l"
           />
           <svg
@@ -179,10 +202,10 @@ function toggleSidebar() {
           class="mt-1 ml-8 space-y-0.5"
         >
           <NuxtLink
-            to="/profile"
+            :to="profilePath"
             :class="[
               'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
-              isActive('/profile')
+              isProfileActive()
                 ? 'text-neutral-900 font-medium'
                 : 'text-neutral-500 hover:text-neutral-900',
             ]"
@@ -190,10 +213,10 @@ function toggleSidebar() {
             Profile
           </NuxtLink>
           <NuxtLink
-            to="/team"
+            :to="teamPath"
             :class="[
               'block px-3 py-1.5 text-sm rounded-md transition-colors duration-150',
-              isActive('/team')
+              isTeamActive()
                 ? 'text-neutral-900 font-medium'
                 : 'text-neutral-500 hover:text-neutral-900',
             ]"
@@ -216,7 +239,7 @@ function toggleSidebar() {
         <div v-for="product in products" :key="product.id" class="space-y-0.5">
           <!-- Product link -->
           <NuxtLink
-            :to="`/${product.slug}/feature-requests`"
+            :to="buildProductRoute(product.slug, 'feature-requests')"
             :class="[
               'relative w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 text-left',
               isProductActive(product.slug)

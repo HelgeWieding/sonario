@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   clerk: {
     signInUrl: '/sign-in',
     signUpUrl: '/sign-up',
-    signInFallbackRedirectUrl: '/dashboard',
+    signInFallbackRedirectUrl: '/post-auth-redirect',
     signUpFallbackRedirectUrl: '/onboarding',
   },
 

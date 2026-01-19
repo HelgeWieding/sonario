@@ -35,7 +35,7 @@ const dashboardPath = computed(() => buildOrgRoute('dashboard'))
         <!-- Organization Switcher -->
         <div v-if="orgData" class="flex items-center">
           <OrganizationSwitcher
-            :hide-personal="false"
+            :hide-personal="true"
             :after-create-organization-url="'/onboarding/organization-check'"
             :after-select-organization-url="'/post-auth-redirect'"
             :after-select-personal-url="'/post-auth-redirect'"

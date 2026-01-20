@@ -1,17 +1,17 @@
-import { eq } from 'drizzle-orm'
-import { getDb, schema } from '../db'
-import type { Organization, NewOrganization } from '../db/schema/organizations'
+import { eq } from "drizzle-orm";
+import { getDb, schema } from "../db";
+import type { Organization } from "../db/schema/organizations";
 
 export interface UpsertOrganizationData {
-  clerkId: string
-  name: string
-  slug?: string | null
-  imageUrl?: string | null
+  clerkId: string;
+  name: string;
+  slug?: string | null;
+  imageUrl?: string | null;
 }
 
 class OrganizationRepository {
   private get db() {
-    return getDb()
+    return getDb();
   }
 
   /**
@@ -20,15 +20,15 @@ class OrganizationRepository {
   async findByClerkId(clerkId: string): Promise<Organization | null> {
     const org = await this.db.query.organizations.findFirst({
       where: eq(schema.organizations.clerkId, clerkId),
-    })
-    return org ?? null
+    });
+    return org ?? null;
   }
 
   /**
    * Create or update an organization by Clerk ID
    */
   async upsert(data: UpsertOrganizationData): Promise<Organization> {
-    const existing = await this.findByClerkId(data.clerkId)
+    const existing = await this.findByClerkId(data.clerkId);
 
     if (existing) {
       const [updated] = await this.db
@@ -40,9 +40,9 @@ class OrganizationRepository {
           updatedAt: new Date(),
         })
         .where(eq(schema.organizations.clerkId, data.clerkId))
-        .returning()
+        .returning();
 
-      return updated
+      return updated;
     }
 
     const [created] = await this.db
@@ -53,9 +53,9 @@ class OrganizationRepository {
         slug: data.slug ?? null,
         imageUrl: data.imageUrl ?? null,
       })
-      .returning()
+      .returning();
 
-    return created
+    return created;
   }
 
   /**
@@ -69,18 +69,18 @@ class OrganizationRepository {
         updatedAt: new Date(),
       })
       .where(eq(schema.organizations.clerkId, clerkId))
-      .returning()
+      .returning();
 
-    return org ?? null
+    return org ?? null;
   }
 
   /**
    * Check if an organization has completed onboarding
    */
   async hasCompletedOnboarding(clerkId: string): Promise<boolean> {
-    const org = await this.findByClerkId(clerkId)
-    return org?.hasCompletedOnboarding ?? false
+    const org = await this.findByClerkId(clerkId);
+    return org?.hasCompletedOnboarding ?? false;
   }
 }
 
-export const organizationRepository = new OrganizationRepository()
+export const organizationRepository = new OrganizationRepository();

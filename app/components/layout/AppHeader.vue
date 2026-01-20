@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { user } = useUser()
 const { selectedProduct, hasMultipleProducts, products, selectProduct } = useProducts()
-const { orgData } = useOrganizationManagement()
+const { orgData, currentOrg } = useOrganizationManagement()
 const { buildOrgRoute } = useOrgSlug()
 
 // Dashboard path with org slug
@@ -32,14 +32,20 @@ const dashboardPath = computed(() => buildOrgRoute('dashboard'))
         <!-- Breadcrumb separator -->
         <span v-if="orgData || selectedProduct" class="text-neutral-300 mx-1">/</span>
 
-        <!-- Organization Switcher -->
-        <div v-if="orgData" class="flex items-center">
-          <OrganizationSwitcher
-            :hide-personal="true"
-            :after-create-organization-url="'/onboarding/organization-check'"
-            :after-select-organization-url="'/post-auth-redirect'"
-            :after-select-personal-url="'/post-auth-redirect'"
-          />
+        <!-- Organization Display -->
+        <div v-if="currentOrg" class="flex items-center gap-2 px-2 py-1.5">
+          <div class="w-6 h-6 rounded bg-violet-600 flex items-center justify-center overflow-hidden">
+            <img
+              v-if="currentOrg.imageUrl"
+              :src="currentOrg.imageUrl"
+              :alt="currentOrg.name"
+              class="w-full h-full object-cover"
+            />
+            <svg v-else class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+            </svg>
+          </div>
+          <span class="text-sm font-medium text-neutral-700">{{ currentOrg.name }}</span>
         </div>
 
         <!-- Product breadcrumb -->

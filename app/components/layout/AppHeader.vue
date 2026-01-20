@@ -59,14 +59,7 @@ const dashboardPath = computed(() => buildOrgRoute('dashboard'))
       </div>
 
       <!-- Right section: User -->
-      <div class="flex items-center gap-3">
-        <div v-if="user" class="flex items-center gap-3">
-          <span class="text-sm text-neutral-500 hidden sm:block">
-            {{ user.emailAddresses[0]?.emailAddress }}
-          </span>
-          <UserButton />
-        </div>
-      </div>
+      <UserDropdown v-if="user" />
     </div>
   </header>
 </template>

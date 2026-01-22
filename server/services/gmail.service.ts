@@ -176,7 +176,7 @@ export class GmailService {
 
       // Extract email and name from "Name <email>" format
       const fromMatch = from.match(/^(.+?)\s*<(.+)>$/)
-      const fromName = fromMatch ? fromMatch[1].trim() : null
+      const fromName = fromMatch ? fromMatch?.[1]?.trim() : null
       const fromEmail = fromMatch ? fromMatch[2] : from
 
       // Get body content
@@ -186,9 +186,16 @@ export class GmailService {
       if (payload?.body?.data) {
         body = Buffer.from(payload.body.data, 'base64').toString('utf-8')
       } else if (payload?.parts) {
+        // Prefer text/plain
         const textPart = payload.parts.find(p => p.mimeType === 'text/plain')
         if (textPart?.body?.data) {
           body = Buffer.from(textPart.body.data, 'base64').toString('utf-8')
+        } else {
+          // Fallback to text/html if no text/plain available
+          const htmlPart = payload.parts.find(p => p.mimeType === 'text/html')
+          if (htmlPart?.body?.data) {
+            body = Buffer.from(htmlPart.body.data, 'base64').toString('utf-8')
+          }
         }
       }
 

@@ -1,4 +1,5 @@
 import type { HelpScoutConversation, GmailMessage, NormalizedMessage } from '~~/shared/types'
+import { stripHtml } from '../utils/strip-html'
 
 /**
  * Transforms messages from different sources into a normalized format.
@@ -11,7 +12,8 @@ export class MessageTransformerService {
   static fromHelpScout(conversation: HelpScoutConversation): NormalizedMessage {
     const threads = conversation._embedded?.threads || []
     const customerThreads = threads.filter(t => t.type === 'customer' || t.type === 'message')
-    const content = customerThreads.length > 0 ? customerThreads[0].body : conversation.preview
+    const rawContent = customerThreads.length > 0 ? customerThreads[0].body : conversation.preview
+    const content = stripHtml(rawContent || '')
 
     // Build full name from first and last
     const nameParts = [
@@ -28,7 +30,7 @@ export class MessageTransformerService {
         name: fullName,
       },
       subject: conversation.subject,
-      content: content || '',
+      content: content,
       receivedAt: new Date(conversation.createdAt),
     }
   }
@@ -46,7 +48,7 @@ export class MessageTransformerService {
         name: message.fromName,
       },
       subject: message.subject,
-      content: message.body,
+      content: stripHtml(message.body),
       receivedAt: message.receivedAt,
     }
   }

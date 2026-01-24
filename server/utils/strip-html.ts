@@ -7,6 +7,14 @@ export function stripHtml(html: string): string {
 
   let text = html
 
+  // Remove style, script, and head blocks entirely (including content)
+  text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+  text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+  text = text.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '')
+
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, '')
+
   // Replace common block elements with newlines for readability
   text = text.replace(/<(br|p|div|h[1-6]|li|tr)[^>]*>/gi, '\n')
 

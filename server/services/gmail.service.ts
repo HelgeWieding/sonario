@@ -176,8 +176,8 @@ export class GmailService {
 
       // Extract email and name from "Name <email>" format
       const fromMatch = from.match(/^(.+?)\s*<(.+)>$/)
-      const fromName = fromMatch ? fromMatch?.[1]?.trim() : null
-      const fromEmail = fromMatch ? fromMatch[2] : from
+      const fromName = fromMatch?.[1]?.trim() ?? null
+      const fromEmail = fromMatch?.[2] ?? from
 
       // Get body content
       let body = ''

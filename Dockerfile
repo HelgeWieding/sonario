@@ -5,8 +5,9 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies fresh for Linux platform
+# npm ci fails with cross-platform lockfiles due to: https://github.com/npm/cli/issues/4828
+RUN rm -f package-lock.json && npm install
 
 # Copy source code
 COPY . .

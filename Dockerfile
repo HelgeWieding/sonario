@@ -5,13 +5,13 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies (use npm install to properly resolve platform-specific bindings)
-RUN npm install --ignore-scripts
+# Install dependencies - ci is faster and more reliable for Docker builds
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Now run prepare and build
+# Build the application
 RUN npm run build
 
 # Production stage

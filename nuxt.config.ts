@@ -56,14 +56,14 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      title: 'Sonario',
-      titleTemplate: '%s | Sonario',
+      title: 'Meeyo',
+      titleTemplate: '%s | Meeyo',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'AI-powered feature request management. Automatically collect, organize, and prioritize customer feedback.' },
         { name: 'theme-color', content: '#c9325a' },
-        { property: 'og:site_name', content: 'Sonario' },
+        { property: 'og:site_name', content: 'Meeyo' },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'robots', content: 'index, follow' },

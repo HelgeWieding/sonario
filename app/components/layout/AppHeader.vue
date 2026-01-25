@@ -26,7 +26,7 @@ const dashboardPath = computed(() => buildOrgRoute('dashboard'))
               <path d="M12 15l-1 1.5h2L12 15z" class="fill-accent-700"/>
             </svg>
           </div>
-          <span class="text-base font-semibold text-neutral-900">Sonario</span>
+          <span class="text-base font-semibold text-neutral-900">Meeyo</span>
         </NuxtLink>
 
         <!-- Breadcrumb separator -->

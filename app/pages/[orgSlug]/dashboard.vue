@@ -51,15 +51,15 @@ onMounted(() => {
     </div>
 
     <!-- Stats Grid -->
-    <div v-if="statsLoading" class="grid gap-6 md:grid-cols-3">
-      <UiCard v-for="i in 3" :key="i">
+    <div v-if="statsLoading" class="grid gap-6 md:grid-cols-2">
+      <UiCard v-for="i in 2" :key="i">
         <div class="space-y-3">
           <div class="h-4 bg-neutral-100 rounded w-24 animate-pulse" />
           <div class="h-8 bg-neutral-100 rounded w-16 animate-pulse" />
         </div>
       </UiCard>
     </div>
-    <div v-else-if="stats" class="grid gap-6 md:grid-cols-3">
+    <div v-else-if="stats" class="grid gap-6 md:grid-cols-2">
       <DashboardStatsCard
         title="Feature Requests"
         :value="stats.totalFeatureRequests"
@@ -67,10 +67,6 @@ onMounted(() => {
       <DashboardStatsCard
         title="New This Week"
         :value="stats.newRequestsThisWeek"
-      />
-      <DashboardStatsCard
-        title="Gmail Status"
-        :value="stats.gmailConnected ? 'Connected' : 'Not Connected'"
       />
     </div>
   </div>

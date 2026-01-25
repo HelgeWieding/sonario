@@ -11,7 +11,7 @@
             <path d="M12 15l-1 1.5h2L12 15z" class="fill-accent-700"/>
           </svg>
         </div>
-        <h1 class="text-2xl font-semibold text-neutral-900">Sonario</h1>
+        <h1 class="text-2xl font-semibold text-neutral-900">Meeyo</h1>
         <p class="mt-2 text-sm text-neutral-500">AI-powered feature request management</p>
       </div>
 

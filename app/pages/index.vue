@@ -29,104 +29,101 @@ definePageMeta({
     <div class="min-h-screen bg-white">
         <!-- Navigation -->
         <nav
-            class="px-6 py-4 max-w-6xl mx-auto flex items-center justify-between"
+            class="fixed top-0 left-0 right-0 z-40 px-6 py-4 bg-white/80 backdrop-blur-md border-b border-transparent"
         >
-            <div class="flex items-center gap-2">
-                <div
-                    class="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center"
-                >
-                    <svg
-                        class="w-5 h-5 text-white"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center"
                     >
-                        <path
-                            d="M2 9.5L5 4l3.5 3.5h7L19 4l3 5.5c0 6.5-4 11-10 11S2 16 2 9.5z"
-                        />
-                        <ellipse
-                            cx="8.5"
-                            cy="12"
-                            rx="1.5"
-                            ry="2"
-                            class="fill-accent-700"
-                        />
-                        <ellipse
-                            cx="15.5"
-                            cy="12"
-                            rx="1.5"
-                            ry="2"
-                            class="fill-accent-700"
-                        />
-                        <path
-                            d="M12 15l-1 1.5h2L12 15z"
-                            class="fill-accent-700"
-                        />
-                    </svg>
+                        <svg
+                            class="w-5 h-5 text-white"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M2 9.5L5 4l3.5 3.5h7L19 4l3 5.5c0 6.5-4 11-10 11S2 16 2 9.5z"
+                            />
+                            <ellipse
+                                cx="8.5"
+                                cy="12"
+                                rx="1.5"
+                                ry="2"
+                                class="fill-accent-700"
+                            />
+                            <ellipse
+                                cx="15.5"
+                                cy="12"
+                                rx="1.5"
+                                ry="2"
+                                class="fill-accent-700"
+                            />
+                            <path
+                                d="M12 15l-1 1.5h2L12 15z"
+                                class="fill-accent-700"
+                            />
+                        </svg>
+                    </div>
+                    <span class="text-lg font-semibold text-neutral-900"
+                        >Meeyo</span
+                    >
                 </div>
-                <span class="text-lg font-semibold text-neutral-900"
-                    >Meeyo</span
-                >
-            </div>
-            <div class="flex items-center gap-4">
-                <NuxtLink
-                    to="/sign-in"
-                    class="text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-                >
-                    Sign In
-                </NuxtLink>
-                <NuxtLink to="/sign-up" class="btn btn-primary">
-                    Get Started
-                </NuxtLink>
+                <div class="flex items-center gap-4">
+                    <NuxtLink
+                        to="/sign-in"
+                        class="text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+                    >
+                        Sign In
+                    </NuxtLink>
+                    <NuxtLink to="/sign-up" class="btn btn-primary">
+                        Get Started
+                    </NuxtLink>
+                </div>
             </div>
         </nav>
 
-        <!-- Hero Section -->
-        <header class="px-6 py-20 max-w-4xl mx-auto text-center">
-            <h1
-                class="text-4xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-tight inline-flex items-center justify-center flex-wrap gap-x-4"
-            >
-                <span>It's time for a</span>
-                <span class="inline-flex items-center gap-1">
-                    <svg
-                        class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-accent-500"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                    >
-                        <!-- Main pad -->
-                        <ellipse cx="12" cy="17" rx="5" ry="4" />
-                        <!-- Toe beans -->
-                        <ellipse cx="6" cy="10" rx="2.5" ry="3" />
-                        <ellipse cx="11" cy="7" rx="2.5" ry="3" />
-                        <ellipse cx="17" cy="9" rx="2.5" ry="3" />
-                    </svg>
-                    <svg
-                        class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-accent-400 -rotate-12"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                    >
-                        <ellipse cx="12" cy="17" rx="5" ry="4" />
-                        <ellipse cx="6" cy="10" rx="2.5" ry="3" />
-                        <ellipse cx="11" cy="7" rx="2.5" ry="3" />
-                        <ellipse cx="17" cy="9" rx="2.5" ry="3" />
-                    </svg>
-                </span>
-            </h1>
-            <p class="mt-4 text-xl sm:text-2xl text-neutral-600">
-                Let us do the work.
-            </p>
-            <p
-                class="mt-6 text-base text-neutral-500 max-w-xl mx-auto leading-relaxed"
-            >
-                Meeyo automatically collects and organizes feature requests from
-                your customer feedback, so you can focus on building what
-                matters.
-            </p>
-        </header>
+        <!-- Hero Carousel -->
+        <LandingHeroCarousel />
+
+        <!-- Social Proof / Stats Bar -->
+        <section class="px-6 py-12 bg-white border-y border-neutral-100">
+            <div class="max-w-6xl mx-auto">
+                <div
+                    class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+                >
+                    <div>
+                        <p class="text-3xl font-bold text-neutral-900">100%</p>
+                        <p class="text-sm text-neutral-500 mt-1">Automated</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-neutral-900">24/7</p>
+                        <p class="text-sm text-neutral-500 mt-1">
+                            Always Working
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-neutral-900">1-Click</p>
+                        <p class="text-sm text-neutral-500 mt-1">Gmail Setup</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-neutral-900">0</p>
+                        <p class="text-sm text-neutral-500 mt-1">
+                            Emails Missed
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Features Section -->
         <section id="features" class="px-6 py-24 bg-neutral-50">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16">
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent-100 text-accent-700 mb-4"
+                    >
+                        Features
+                    </span>
                     <h2
                         class="text-3xl font-semibold text-neutral-900 tracking-tight"
                     >
@@ -144,10 +141,10 @@ definePageMeta({
                         class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
                     >
                         <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
                         >
                             <svg
-                                class="w-5 h-5 text-neutral-700"
+                                class="w-5 h-5 text-accent-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -168,8 +165,8 @@ definePageMeta({
                         <p
                             class="mt-2 text-sm text-neutral-600 leading-relaxed"
                         >
-                            Connect Gmail or Help Scout and automatically import
-                            customer conversations. No manual copy-pasting
+                            Connect Gmail with a single click and automatically
+                            import customer conversations. No manual copy-pasting
                             required.
                         </p>
                     </article>
@@ -179,10 +176,10 @@ definePageMeta({
                         class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
                     >
                         <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
                         >
                             <svg
-                                class="w-5 h-5 text-neutral-700"
+                                class="w-5 h-5 text-accent-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -214,10 +211,10 @@ definePageMeta({
                         class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
                     >
                         <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
                         >
                             <svg
-                                class="w-5 h-5 text-neutral-700"
+                                class="w-5 h-5 text-accent-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -248,44 +245,10 @@ definePageMeta({
                         class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
                     >
                         <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
                         >
                             <svg
-                                class="w-5 h-5 text-neutral-700"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.5"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                            </svg>
-                        </div>
-                        <h3
-                            class="mt-4 text-base font-semibold text-neutral-900"
-                        >
-                            Contact Tracking
-                        </h3>
-                        <p
-                            class="mt-2 text-sm text-neutral-600 leading-relaxed"
-                        >
-                            Keep track of who requested what. See all feedback
-                            from a specific customer in one place.
-                        </p>
-                    </article>
-
-                    <!-- Feature 5 -->
-                    <article
-                        class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
-                    >
-                        <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
-                        >
-                            <svg
-                                class="w-5 h-5 text-neutral-700"
+                                class="w-5 h-5 text-accent-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -301,7 +264,7 @@ definePageMeta({
                         <h3
                             class="mt-4 text-base font-semibold text-neutral-900"
                         >
-                            Categorization
+                            Auto Categorization
                         </h3>
                         <p
                             class="mt-2 text-sm text-neutral-600 leading-relaxed"
@@ -311,15 +274,15 @@ definePageMeta({
                         </p>
                     </article>
 
-                    <!-- Feature 6 -->
+                    <!-- Feature 5 -->
                     <article
                         class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
                     >
                         <div
-                            class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center"
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
                         >
                             <svg
-                                class="w-5 h-5 text-neutral-700"
+                                class="w-5 h-5 text-accent-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -344,6 +307,40 @@ definePageMeta({
                             Prioritize based on urgency and satisfaction.
                         </p>
                     </article>
+
+                    <!-- Feature 6 -->
+                    <article
+                        class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 p-6"
+                    >
+                        <div
+                            class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center"
+                        >
+                            <svg
+                                class="w-5 h-5 text-accent-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                                />
+                            </svg>
+                        </div>
+                        <h3
+                            class="mt-4 text-base font-semibold text-neutral-900"
+                        >
+                            Priority Scoring
+                        </h3>
+                        <p
+                            class="mt-2 text-sm text-neutral-600 leading-relaxed"
+                        >
+                            AI-powered priority scores help you focus on what
+                            matters most to your customers.
+                        </p>
+                    </article>
                 </div>
             </div>
         </section>
@@ -352,10 +349,15 @@ definePageMeta({
         <section id="how-it-works" class="px-6 py-24 bg-white">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16">
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent-100 text-accent-700 mb-4"
+                    >
+                        How It Works
+                    </span>
                     <h2
                         class="text-3xl font-semibold text-neutral-900 tracking-tight"
                     >
-                        How It Works
+                        Three Steps to Better Feedback
                     </h2>
                     <p class="mt-4 text-lg text-neutral-600">
                         Get started in minutes, not hours.
@@ -374,13 +376,13 @@ definePageMeta({
                         <h3
                             class="mt-5 text-base font-semibold text-neutral-900"
                         >
-                            Connect Your Sources
+                            Connect Your Gmail
                         </h3>
                         <p
                             class="mt-2 text-sm text-neutral-600 leading-relaxed"
                         >
-                            Link your Gmail or Help Scout account with a few
-                            clicks. We only read incoming messages.
+                            One click to connect. We only read incoming
+                            messages—your data stays secure and private.
                         </p>
                     </div>
 
@@ -395,13 +397,13 @@ definePageMeta({
                         <h3
                             class="mt-5 text-base font-semibold text-neutral-900"
                         >
-                            AI Processes Feedback
+                            AI Does the Work
                         </h3>
                         <p
                             class="mt-2 text-sm text-neutral-600 leading-relaxed"
                         >
-                            Our AI scans each message, identifies feature
-                            requests, and extracts all relevant details.
+                            Our AI automatically scans each message, identifies
+                            feature requests, and organizes everything.
                         </p>
                     </div>
 
@@ -422,29 +424,40 @@ definePageMeta({
                             class="mt-2 text-sm text-neutral-600 leading-relaxed"
                         >
                             See all requests in one dashboard, sorted by
-                            popularity. Make data-driven product decisions.
+                            demand. Make data-driven product decisions.
                         </p>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- Testimonials Section -->
+        <LandingTestimonials />
+
         <!-- CTA Section -->
         <section class="px-6 py-24 bg-neutral-900">
             <div class="max-w-3xl mx-auto text-center">
                 <h2 class="text-3xl font-semibold text-white tracking-tight">
-                    Ready to Understand Your Customers Better?
+                    Ready to Complete Your Feedback Loop?
                 </h2>
                 <p class="mt-4 text-lg text-neutral-400">
                     Start collecting and organizing feature requests today. No
                     credit card required.
                 </p>
-                <NuxtLink
-                    to="/sign-up"
-                    class="mt-8 inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg bg-white text-neutral-900 hover:bg-neutral-100 transition-colors"
-                >
-                    Start Free Trial
-                </NuxtLink>
+                <div class="flex flex-wrap justify-center gap-4 mt-8">
+                    <NuxtLink
+                        to="/sign-up"
+                        class="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg bg-white text-neutral-900 hover:bg-neutral-100 transition-colors"
+                    >
+                        Start Free Trial
+                    </NuxtLink>
+                    <NuxtLink
+                        to="/contact"
+                        class="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg border border-neutral-600 text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors"
+                    >
+                        Contact Sales
+                    </NuxtLink>
+                </div>
             </div>
         </section>
 
@@ -504,5 +517,8 @@ definePageMeta({
                 </p>
             </div>
         </footer>
+
+        <!-- Sticky CTA Bar -->
+        <LandingStickyCTA />
     </div>
 </template>
